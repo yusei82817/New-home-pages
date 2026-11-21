@@ -35,6 +35,7 @@
         <div class="health-track player-track"><div class="health-fill" id="player-health"></div></div>
         <div class="health-track enemy-track"><div class="health-fill" id="enemy-health"></div></div>
       </div>
+      <div class="meter-row"><div class="meter-track"><div id="player-meter" class="meter-fill"></div></div><div class="meter-track enemy-meter"><div id="enemy-meter" class="meter-fill"></div></div></div>
 
       <div class="canvas-wrap">
         <canvas id="arena" width="960" height="500" aria-label="格闘ゲームのアリーナ"></canvas>
@@ -47,6 +48,8 @@
           </div>
         </div>
         <div class="hit-flash" id="hit-flash" aria-hidden="true"></div>
+        <div class="combat-callout" id="combat-callout" aria-live="polite"></div>
+        <div class="round-banner" id="round-banner">ROUND <strong>01</strong></div>
       </div>
 
       <div class="match-footer">
@@ -67,9 +70,10 @@
         </div>
         <div class="control-group">
           <h3>ATTACK</h3>
-          <div class="key-row"><kbd>J</kbd><span>パンチ</span></div>
-          <div class="key-row"><kbd>K</kbd><span>キック</span></div>
-          <div class="key-row"><kbd>L</kbd><span>ガード</span></div>
+          <div class="key-row"><kbd>J</kbd><span>弱攻撃 / コンボ始動</span></div>
+          <div class="key-row"><kbd>K</kbd><span>強攻撃</span></div>
+          <div class="key-row"><kbd>L</kbd><span>ガード（相手方向）</span></div>
+          <div class="key-row"><kbd>J→K</kbd><span>連係コンボ</span></div>
         </div>
         <div class="control-group">
           <h3>MATCH</h3>
@@ -93,7 +97,7 @@
       </div>
     </section>
 
-    <footer class="page-footer"><span>VOID CLASH // PROTOTYPE 01</span><span>BUILT WITH HTML · CSS · JAVASCRIPT</span></footer>
+    <footer class="page-footer"><span>VOID CLASH // PROTOTYPE 01</span><span>HTML · CSS · JAVASCRIPT / COMBAT ENGINE 02</span></footer>
   </main>
 </body>
 </html>
