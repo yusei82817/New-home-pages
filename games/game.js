@@ -42,7 +42,7 @@
   }
   function attack(f, type) {
     if (state !== 'playing' || f.stun > 0 || f.attack || !f.grounded) return;
-    f.attack = type; f.attackTimer = type === 'punch' ? .28 : .43;
+    f.attack = { type, hit: false }; f.attackTimer = type === 'punch' ? .28 : .43;
   }
   function spawnImpact(x, y, color) {
     for (let i = 0; i < 13; i++) particles.push({x,y,vx:(Math.random()-.5)*250,vy:(Math.random()-.65)*220,life:.28+Math.random()*.22,color});
@@ -51,7 +51,7 @@
   }
   function tryHit(attacker, target) {
     if (!attacker.attack) return;
-    const duration = attacker.attack === 'punch' ? .28 : .43;
+    const duration = attacker.attack.type === 'punch' ? .28 : .43;
     const progress = 1 - attacker.attackTimer / duration;
     if (progress < .35 || progress > .72 || attacker.attack.hit) return;
     const reach = attacker.attack === 'punch' ? 83 : 112;
