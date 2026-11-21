@@ -692,6 +692,9 @@ a:focus-visible {
 .booth-button { margin-top: 16px; gap: 12px; }
 
 .booth-logo-link {
+  position: relative;
+  top: -12px;
+  right: -14px;
   display: grid;
   flex: 0 0 210px;
   min-height: 112px;
@@ -738,6 +741,8 @@ a:focus-visible {
   }
 
   .booth-logo-link {
+    top: 0;
+    right: 0;
     align-self: stretch;
     flex-basis: auto;
     min-height: 100px;
