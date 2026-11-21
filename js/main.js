@@ -10,6 +10,118 @@
   const sections = [...document.querySelectorAll("main section[id]")];
   const navLinks = [...document.querySelectorAll('nav a[href^="#"]')];
 
+
+  // Ambient fireworks canvas (single layer, capped particle count and frame rate)
+  if (!reduceMotion) {
+    const canvas = document.createElement("canvas");
+    canvas.id = "fireworks-canvas";
+    canvas.setAttribute("aria-hidden", "true");
+    canvas.setAttribute("role", "presentation");
+    document.body.prepend(canvas);
+
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (ctx) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      let width = 0;
+      let height = 0;
+      let particles = [];
+      let lastFrame = 0;
+      let lastLaunch = 0;
+      let nextLaunch = 900;
+      let frameId = 0;
+      const maxParticles = window.innerWidth < 600 ? 115 : 210;
+      const hues = [258, 270, 285, 220, 300];
+
+      const resizeCanvas = () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      };
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas, { passive: true });
+
+      const launchFirework = () => {
+        if (particles.length >= maxParticles - 42) return;
+        const x = width * (0.12 + Math.random() * 0.76);
+        const y = height * (0.12 + Math.random() * 0.48);
+        const hue = hues[Math.floor(Math.random() * hues.length)];
+        const count = window.innerWidth < 600 ? 24 : 38;
+        for (let i = 0; i < count && particles.length < maxParticles; i++) {
+          const angle = (Math.PI * 2 * i) / count + Math.random() * 0.12;
+          const speed = 0.7 + Math.random() * 2.15;
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 48 + Math.random() * 28,
+            maxLife: 76,
+            size: 0.8 + Math.random() * 1.25,
+            hue: hue + (Math.random() * 16 - 8)
+          });
+        }
+      };
+
+      const drawFrame = (time) => {
+        frameId = 0;
+        if (document.hidden) return;
+        if (time - lastFrame < 33) {
+          frameId = requestAnimationFrame(drawFrame);
+          return;
+        }
+        lastFrame = time;
+        ctx.clearRect(0, 0, width, height);
+
+        if (time - lastLaunch > nextLaunch) {
+          launchFirework();
+          lastLaunch = time;
+          nextLaunch = 1250 + Math.random() * 1700;
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.985;
+          p.vy = p.vy * 0.985 + 0.012;
+          p.life -= 1;
+          if (p.life <= 0) {
+            particles.splice(i, 1);
+            continue;
+          }
+          const alpha = Math.min(1, p.life / 22) * 0.72;
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${p.hue}, 88%, 82%, ${alpha})`;
+          ctx.shadowBlur = 9;
+          ctx.shadowColor = `hsla(${p.hue}, 90%, 76%, ${alpha})`;
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+        frameId = requestAnimationFrame(drawFrame);
+      };
+
+      const startAnimation = () => {
+        if (!document.hidden && !frameId) {
+          lastFrame = 0;
+          frameId = requestAnimationFrame(drawFrame);
+        }
+      };
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          if (frameId) cancelAnimationFrame(frameId);
+          frameId = 0;
+          particles = [];
+          ctx.clearRect(0, 0, width, height);
+        } else {
+          startAnimation();
+        }
+      });
+      startAnimation();
+    }
+  }
+
   // Automatic copyright year
   const year = document.getElementById("year");
   if (year) year.textContent = new Date().getFullYear();
