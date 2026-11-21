@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101a2d">
+  <meta name="description" content="学校生活と株式投資を両立するシミュレーションゲーム。">
+  <title>School and Only Stock</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./game.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">RHYTHMOS <span>/ GAMES</span></a>
+    <div class="top-status"><i></i> SIMULATION PROJECT 01</div>
+    <a class="back" href="../index.html">GAMES HOME ↗</a>
+  </header>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">SCHOOL LIFE × STOCK MARKET</p>
+      <h1>SCHOOL <em>AND</em><br>ONLY STOCK<span>.</span></h1>
+      <p>放課後だけが、勝負の時間じゃない。</p>
+    </section>
+
+    <section class="dashboard">
+      <div class="dash-item"><span>DAY</span><strong id="day">01 <small>/ 30</small></strong></div>
+      <div class="dash-item"><span>WALLET</span><strong id="cash">¥100,000</strong></div>
+      <div class="dash-item"><span>NET WORTH</span><strong id="networth">¥100,000</strong></div>
+      <div class="dash-item"><span>STAMINA</span><strong id="stamina">80 / 100</strong></div>
+    </section>
+
+    <section class="layout">
+      <div class="main-column">
+        <section class="panel school-panel">
+          <div class="section-head"><div><p class="eyebrow">YOUR DAILY ROUTINE</p><h2>今日の学校生活</h2></div><span class="pill" id="day-state">行動選択中</span></div>
+          <p class="description">1日に選べる学校行動は1つ。行動を決めたら「一日を終える」で翌日に進む。</p>
+          <div class="actions" id="actions">
+            <button class="action-card selected" data-action="class"><b>01</b><strong>授業に出る</strong><span>成績 +4 / 知識 +2 / 体力 -10</span></button>
+            <button class="action-card" data-action="study"><b>02</b><strong>自習する</strong><span>成績 +2 / 知識 +5 / 体力 -15</span></button>
+            <button class="action-card" data-action="work"><b>03</b><strong>アルバイト</strong><span>資金 +¥8,000 / 体力 -20</span></button>
+            <button class="action-card" data-action="research"><b>04</b><strong>市場を調べる</strong><span>投資知識 +3 / 次の値動きを予測</span></button>
+            <button class="action-card" data-action="rest"><b>05</b><strong>休息する</strong><span>体力 +25</span></button>
+          </div>
+          <div class="action-bottom"><p id="action-note">授業に出席する。地道な積み重ねが成績につながる。</p><button class="primary" id="finish-day">一日を終える <span>→</span></button></div>
+        </section>
+
+        <section class="panel market-panel">
+          <div class="section-head"><div><p class="eyebrow">VIRTUAL EXCHANGE</p><h2>株式市場</h2></div><span class="pill market-pill">SIMULATED MARKET</span></div>
+          <p class="description">ここに登場する企業・株価はすべてゲーム内の架空データです。現実の投資とは関係ありません。</p>
+          <div class="stock-list" id="stock-list"></div>
+          <div class="trade-box">
+            <div class="trade-title"><strong>注文パネル</strong><span>取引手数料なし</span></div>
+            <label>銘柄<select id="trade-stock"></select></label>
+            <label>株数<input id="trade-qty" type="number" min="1" step="1" value="1"></label>
+            <div class="trade-estimate"><span>注文概算</span><strong id="trade-total">¥0</strong></div>
+            <div class="trade-buttons"><button id="buy" class="buy">購入する</button><button id="sell" class="sell">売却する</button></div>
+            <p id="trade-message" class="trade-message" aria-live="polite">銘柄と株数を選択してください。</p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="side-column">
+        <section class="panel profile-panel">
+          <p class="eyebrow">STUDENT RECORD</p><h2>生徒データ</h2>
+          <div class="stat"><span>学業成績</span><strong id="grade">50</strong><div class="bar"><i id="grade-bar"></i></div></div>
+          <div class="stat"><span>投資知識</span><strong id="knowledge">10</strong><div class="bar"><i id="knowledge-bar"></i></div></div>
+          <div class="stat"><span>学校での評判</span><strong id="reputation">50</strong><div class="bar"><i id="reputation-bar"></i></div></div>
+          <div class="stat"><span>保有株評価額</span><strong id="holdings-value">¥0</strong></div>
+        </section>
+        <section class="panel portfolio-panel">
+          <div class="section-head"><div><p class="eyebrow">YOUR ASSETS</p><h2>保有銘柄</h2></div></div>
+          <div id="portfolio"><p class="empty">まだ株を保有していない。</p></div>
+        </section>
+        <section class="panel news-panel">
+          <p class="eyebrow">CAMPUS & MARKET NEWS</p><h2>今日のニュース</h2>
+          <p id="news">新学期が始まった。まずは学校と市場の様子を見てみよう。</p>
+          <div class="forecast" id="forecast">市場分析を行うと、次の日の値動きのヒントが得られる。</div>
+        </section>
+        <section class="panel log-panel">
+          <p class="eyebrow">ACTIVITY LOG</p><h2>活動記録</h2><ul id="log"><li>入学初日。所持金は¥100,000。</li></ul>
+        </section>
+      </aside>
+    </section>
+
+    <section class="result panel hidden" id="result">
+      <p class="eyebrow">SCHOOL YEAR COMPLETE</p><h2>30日間の結果</h2><p id="result-copy"></p><strong id="final-score"></strong><button class="primary" id="restart">もう一度プレイする ↻</button>
+    </section>
+    <footer>School and Only Stock <span>PROTOTYPE 0.1.0 / FICTIONAL MARKET DATA</span></footer>
+  </main>
+</body>
+</html>
