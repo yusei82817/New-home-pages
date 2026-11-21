@@ -8,7 +8,8 @@
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const header = document.querySelector("header");
   const sections = [...document.querySelectorAll("main section[id]")];
-  const navLinks = [...document.querySelectorAll('nav a[href^="#"]')];
+  const navLinks = [...document.querySelectorAll('.site-header nav a[href^="#"]')];
+  const asideLinks = [...document.querySelectorAll('.aside-nav a[href^="#"]')];
 
 
   // Ambient fireworks canvas (single layer, capped particle count and frame rate)
@@ -186,7 +187,7 @@
     const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        navLinks.forEach((link) => {
+        [...navLinks, ...asideLinks].forEach((link) => {
           const active = link.getAttribute("href") === `#${entry.target.id}`;
           link.classList.toggle("is-active", active);
           if (active) link.setAttribute("aria-current", "location");
