@@ -716,10 +716,10 @@ a:focus-visible {
   display: block;
   width: 100%;
   aspect-ratio: 2.85 / 1;
-  background-image: url("https://cdn-ak.f.st-hatena.com/images/fotolife/p/pixiv_corp/20251029/20251029190556.png");
+  background-image: url("../assets/booth.png");
   background-repeat: no-repeat;
-  background-size: 556% 1032%;
-  background-position: 100% 0;
+  background-size: contain;
+  background-position: center;
 }
 
 @media (max-width: 820px) {
