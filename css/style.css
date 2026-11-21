@@ -634,3 +634,114 @@ a:focus-visible {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* Official BOOTH shop promotion */
+
+.booth-promo {
+  position: relative;
+  width: min(100% - 12vw, var(--content));
+  margin: 0 auto 34px;
+  padding: clamp(30px, 5vw, 58px);
+  overflow: hidden;
+  border: 1px solid rgba(219, 196, 255, .3);
+  border-radius: 26px;
+  background:
+    radial-gradient(ellipse at 88% 50%, rgba(168,135,245,.2), transparent 34%),
+    linear-gradient(120deg, rgba(30,23,49,.96), rgba(12,11,23,.96));
+  box-shadow: 0 24px 70px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.07);
+}
+
+.booth-promo::before {
+  position: absolute;
+  top: -100px;
+  right: 12%;
+  width: 280px;
+  height: 280px;
+  border: 1px solid rgba(216,196,255,.12);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.booth-promo-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.booth-copy { max-width: 650px; }
+
+.booth-copy h2 {
+  margin: 0 0 12px;
+  color: #f7f2ff;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.2;
+}
+
+.booth-copy > p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+.booth-button { margin-top: 16px; gap: 12px; }
+
+.booth-logo-link {
+  display: grid;
+  flex: 0 0 210px;
+  min-height: 112px;
+  place-items: center;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 20px;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 14px 40px rgba(0,0,0,.25);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.booth-logo-link:hover {
+  transform: translateY(-5px) scale(1.025);
+  box-shadow: 0 18px 48px rgba(168,135,245,.25);
+}
+
+.booth-logo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2.85 / 1;
+  background-image: url("https://cdn-ak.f.st-hatena.com/images/fotolife/p/pixiv_corp/20251029/20251029190556.png");
+  background-repeat: no-repeat;
+  background-size: 556% 1032%;
+  background-position: 100% 0;
+}
+
+@media (max-width: 820px) {
+  .booth-promo { width: min(100% - 8vw, var(--content)); }
+}
+
+@media (max-width: 600px) {
+  .booth-promo {
+    width: min(100% - 9vw, var(--content));
+    margin-bottom: 24px;
+    padding: 30px 23px;
+    border-radius: 20px;
+  }
+
+  .booth-promo-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 26px;
+  }
+
+  .booth-logo-link {
+    align-self: stretch;
+    flex-basis: auto;
+    min-height: 100px;
+  }
+
+  .booth-logo { max-width: 210px; }
+}
