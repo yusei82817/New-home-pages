@@ -1,0 +1,23 @@
+New-home-pages/index.html
+New-home-pages/games/Store-My-Only/index.html (ゲームに飛ぶ前の紹介用サイト)
+New-home-pages/games/Store-My-Only/op.html (ゲームのタイトルコール用)
+New-home-pages/games/Store-My-Only/frame.html (これがゲームのframeになる。ここでiframeを使ってgame.htmlを開く。)
+
+ゲームの開始手順は上記の流れにしたいので、
+始祖ディレクトリ直下のindex.htmlに導入用のセクションとボタンを配置し、
+New-home-pages/games/Store-My-Only/index.htmlでは、
+・ゲームへの導入ボタンを追従式ヘッダーにする
+・サイトの最初には、プレイ動画を背景に挿入するので、それ用のプログラムの枠を作っておくこと。
+・動画背景から下はこちらでテクスチャを探すので、あらかじめ「./assets/back-ground.png」を読み込むようにしておくこと。
+・項目の並び順位付けは、
+　・about
+　・Operating environment
+　・Recommended browser
+　・News
+　・Movie(youtube埋め込み用)
+　・Introduction(世界観説明、あらすじ用)
+　・Character(ただし、各国主要キャラ３名に限る)
+　・System(ゲームの紹介スクショを貼る)
+　・Credit Staff(主題歌、協力者などの名前を乗せる。作中の曲はgame.htmlで書くのでパス)
+・フッターに著作権表記(特に意味なし)
+・フッターに公式SNS
