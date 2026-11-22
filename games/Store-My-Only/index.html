@@ -85,7 +85,7 @@
       color: #c6b99f; text-align: center;
     }
     .media-placeholder strong, .screenshot-placeholder strong { display: block; color: var(--gold-light); letter-spacing: .12em; }
-    .character-art { min-height: 190px; margin: -22px -22px 18px; display: grid; place-items: center; background: linear-gradient(145deg, rgba(217,184,121,.13), rgba(0,0,0,.25)); color: #b8a98c; font-size: .8rem; }
+    .character-art { display: block; width: calc(100% + 44px); height: 280px; margin: -22px -22px 18px; object-fit: cover; object-position: center top; background: linear-gradient(145deg, rgba(217,184,121,.13), rgba(0,0,0,.25)); }
     .character-card .role { color: var(--gold); font-size: .7rem; letter-spacing: .16em; }
     .system-card { padding: 14px; }
     .system-card h3 { margin: 14px 4px 4px; }
@@ -110,7 +110,7 @@
       .info-grid, .character-grid, .system-grid, .credit-grid { grid-template-columns: 1fr; }
       .news-item { grid-template-columns: 1fr; gap: 3px; }
       .section { padding: 26px 20px; }
-      .character-art { min-height: 150px; }
+      .character-art { height: 230px; }
     }
   </style>
 </head>
@@ -195,9 +195,10 @@
         <div class="section-heading"><p class="eyebrow">07 / CHARACTER</p><h2>Character<span>主要キャラクター</span></h2></div>
         <p>各国の主要キャラクターを紹介するセクションです。掲載対象は各国につき主要キャラクター3名までとします。</p>
         <div class="character-grid">
-          <article class="character-card"><div class="character-art">CHARACTER VISUAL</div><span class="role">CHARACTER 01</span><h3>キャラクター情報準備中</h3><p>名前・所属・紹介文・立ち絵を後から掲載します。</p></article>
-          <article class="character-card"><div class="character-art">CHARACTER VISUAL</div><span class="role">CHARACTER 02</span><h3>キャラクター情報準備中</h3><p>名前・所属・紹介文・立ち絵を後から掲載します。</p></article>
-          <article class="character-card"><div class="character-art">CHARACTER VISUAL</div><span class="role">CHARACTER 03</span><h3>キャラクター情報準備中</h3><p>名前・所属・紹介文・立ち絵を後から掲載します。</p></article>
+          <!-- 画像は assets/characters/ に配置し、各 img の src を変更する。 -->
+          <article class="character-card"><img class="character-art" src="./assets/characters/character-01.png" alt="キャラクター01の立ち絵" loading="lazy"><span class="role">CHARACTER 01</span><h3>キャラクター情報準備中</h3><p>名前・所属・紹介文・立ち絵を後から掲載します。</p></article>
+          <article class="character-card"><img class="character-art" src="./assets/characters/character-02.png" alt="キャラクター02の立ち絵" loading="lazy"><span class="role">CHARACTER 02</span><h3>キャラクター情報準備中</h3><p>名前・所属・紹介文・立ち絵を後から掲載します。</p></article>
+          <article class="character-card"><img class="character-art" src="./assets/characters/character-03.png" alt="キャラクター03の立ち絵" loading="lazy"><span class="role">CHARACTER 03</span><h3>キャラクター情報準備中</h3><p>名前・所属・紹介文・立ち絵を後から掲載します。</p></article>
         </div>
       </section>
 
