@@ -47,7 +47,7 @@
     }
     @keyframes seaDrift { from{transform:translateX(-2%) translateY(0)} to{transform:translateX(2%) translateY(5px)} }
     .hill-character {
-      position:absolute; z-index:2; left:clamp(22%,32vw,35%);
+      position:absolute; z-index:2; left:calc(clamp(22%,32vw,35%) - min(80vw,336px));
       bottom:32vh; width:min(20vw,84px); height:auto;
       object-fit:contain; object-position:center bottom;
       pointer-events:none; user-select:none;
@@ -190,7 +190,7 @@
       .tagline { letter-spacing:.07em; }
       .sigil { width:105vw; }
       .fantasy-sea { height:25vh; min-height:130px; }
-      .hill-character { left:27%; bottom:32vh; width:min(20vw,84px); }
+      .hill-character { left:max(2%,calc(27% - min(80vw,336px))); bottom:32vh; width:min(20vw,84px); }
       .back-link { bottom:5%; font-size:.62rem; white-space:nowrap; }
       .version { display:none; }
     }
