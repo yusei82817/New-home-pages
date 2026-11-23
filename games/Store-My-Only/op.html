@@ -24,8 +24,30 @@
         linear-gradient(145deg,#171923 0%,#090b13 54%,#05060a 100%);
     }
     #effects { position:absolute; inset:0; width:100%; height:100%; z-index:-1; }
+    .fantasy-sea {
+      position:absolute; left:0; right:0; bottom:0; z-index:0;
+      height:43vh; min-height:210px; pointer-events:none; overflow:hidden;
+      background:
+        radial-gradient(ellipse at 78% 12%,rgba(129,184,205,.25),transparent 34%),
+        linear-gradient(180deg,rgba(20,49,69,.18) 0%,#102d43 34%,#081725 75%,#050a12 100%);
+    }
+    .fantasy-sea::before {
+      content:""; position:absolute; left:-12%; right:-12%; top:17%; height:48%;
+      background:
+        repeating-linear-gradient(174deg,transparent 0 17px,rgba(159,211,224,.13) 18px,transparent 20px 34px),
+        linear-gradient(180deg,rgba(150,203,218,.12),transparent 70%);
+      border-radius:50% 50% 0 0 / 18% 18% 0 0;
+      filter:blur(2px); opacity:.85;
+      animation:seaDrift 14s ease-in-out infinite alternate;
+    }
+    .fantasy-sea::after {
+      content:""; position:absolute; left:0; right:0; top:0; height:38%;
+      background:linear-gradient(180deg,rgba(188,219,221,.2),rgba(98,153,174,.08) 24%,transparent);
+      filter:blur(12px);
+    }
+    @keyframes seaDrift { from{transform:translateX(-2%) translateY(0)} to{transform:translateX(2%) translateY(5px)} }
     .hill-silhouette {
-      position:absolute; left:-2%; bottom:-1px; z-index:0;
+      position:absolute; left:-2%; bottom:-1px; z-index:1;
       width:min(72vw,950px); height:27vh; min-height:150px;
       pointer-events:none;
       background:linear-gradient(165deg,#171923 0%,#0b0d15 58%,#05060a 100%);
@@ -160,6 +182,7 @@
       .crest { width:54px; height:54px; font-size:1.5rem; }
       .tagline { letter-spacing:.07em; }
       .sigil { width:105vw; }
+      .fantasy-sea { height:39vh; }
       .back-link { bottom:5%; font-size:.62rem; white-space:nowrap; }
       .version { display:none; }
     }
@@ -175,6 +198,7 @@
     <div class="sigil" aria-hidden="true"></div>
     <div class="shockwave" aria-hidden="true"></div>
     <div class="light-beam" aria-hidden="true"></div>
+    <div class="fantasy-sea" aria-hidden="true"></div>
     <div class="hill-silhouette" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
     <div class="frame" aria-hidden="true"></div>
