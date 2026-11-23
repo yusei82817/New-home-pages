@@ -83,6 +83,12 @@
       text-shadow:0 0 12px rgba(255,231,180,.8),0 0 42px rgba(224,174,91,.55),0 8px 32px #000;
       animation:logoReveal 1.2s 1.9s cubic-bezier(.15,.8,.2,1) forwards;
     }
+    h1 .title-line { display:block; }
+    h1 .title-line:last-child {
+      margin-top:.1em;
+      font-size:.72em;
+      letter-spacing:.22em;
+    }
     .title-rule {
       display:flex; align-items:center; justify-content:center; gap:15px;
       width:min(460px,75%); margin:26px auto 20px; color:var(--gold);
@@ -166,7 +172,7 @@
     <section class="content" aria-labelledby="game-title">
       <p class="eyebrow">A FANTASY SHOP MANAGEMENT SIMULATION</p>
       <div class="crest" aria-hidden="true"><span>✦</span></div>
-      <h1 id="game-title">STORE MY ONLY</h1>
+      <h1 id="game-title"><span class="title-line">STORE</span><span class="title-line">MY ONLY</span></h1>
       <div class="title-rule" aria-hidden="true">✧</div>
       <p class="tagline">リアリティのある世界で、自分だけの店を経営しよう。</p>
       <p class="subline">YOUR STORY. YOUR STORE.</p>
