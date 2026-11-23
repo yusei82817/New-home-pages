@@ -3,14 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#111318">
-  <title>Store My Only</title>
+  <meta name="theme-color" content="#090807">
+  <meta name="description" content="Store My Only - Official Game Screen">
+  <title>Store My Only | Game Lounge</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Serif+JP:wght@400;500;600;700&display=swap');
+
     :root {
       color-scheme: dark;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #111318;
-      color: #f4f5f7;
+      --gold: #d8b66a;
+      --gold-light: #f4df9e;
+      --gold-deep: #8c672d;
+      --ink: #090807;
+      --panel: #15110d;
+      --ivory: #f6edda;
+      font-family: "Noto Serif JP", "Yu Mincho", serif;
+      background: var(--ink);
+      color: var(--ivory);
     }
 
     * { box-sizing: border-box; }
@@ -18,6 +27,7 @@
     html, body {
       width: 100%;
       height: 100%;
+      min-height: 0;
       margin: 0;
       overflow: hidden;
     }
@@ -25,52 +35,148 @@
     body {
       display: flex;
       flex-direction: column;
-      min-height: 0;
+      background:
+        radial-gradient(ellipse at 50% -35%, rgba(170, 125, 52, .22), transparent 58%),
+        linear-gradient(135deg, #100d09 0%, #070605 52%, #171008 100%);
     }
 
     .game-header {
-      height: 54px;
-      flex: 0 0 54px;
+      position: relative;
+      z-index: 2;
+      min-height: 76px;
+      flex: 0 0 76px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 20px;
+      padding: 0 clamp(16px, 4vw, 58px);
+      background:
+        linear-gradient(180deg, rgba(35, 27, 17, .98), rgba(15, 12, 9, .98));
+      border-bottom: 1px solid rgba(216, 182, 106, .52);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, .45);
+    }
+
+    .game-header::before,
+    .game-header::after {
+      content: "";
+      position: absolute;
+      bottom: -3px;
+      width: 5px;
+      height: 5px;
+      transform: rotate(45deg);
+      background: var(--gold-light);
+      box-shadow: 0 0 12px rgba(244, 223, 158, .8);
+    }
+    .game-header::before { left: 22px; }
+    .game-header::after { right: 22px; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      min-width: 0;
       gap: 16px;
-      padding: 0 18px;
-      background: #1b1e26;
-      border-bottom: 1px solid #303541;
+    }
+
+    .brand-mark {
+      position: relative;
+      width: 43px;
+      height: 43px;
+      flex: 0 0 43px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      color: var(--gold-light);
+      font-family: "Cinzel", serif;
+      font-size: 20px;
+      text-shadow: 0 0 12px rgba(244, 223, 158, .5);
+      box-shadow: inset 0 0 0 4px rgba(216, 182, 106, .09), 0 0 18px rgba(216, 182, 106, .12);
+    }
+
+    .brand-mark::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(216, 182, 106, .45);
+      border-radius: 50%;
+    }
+
+    .brand-copy { min-width: 0; }
+
+    .eyebrow {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--gold);
+      font-family: "Cinzel", serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .34em;
+      text-transform: uppercase;
     }
 
     .game-title {
       margin: 0;
-      font-size: 16px;
-      font-weight: 650;
-      letter-spacing: .04em;
+      overflow: hidden;
+      color: var(--ivory);
+      font-family: "Cinzel", "Noto Serif JP", serif;
+      font-size: clamp(17px, 2vw, 23px);
+      font-weight: 600;
+      letter-spacing: .13em;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-shadow: 0 2px 14px rgba(216, 182, 106, .18);
     }
 
     .game-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 18px;
     }
 
     .game-status {
-      color: #aeb5c2;
-      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(246, 237, 218, .65);
+      font-family: "Cinzel", serif;
+      font-size: 10px;
+      letter-spacing: .2em;
+      white-space: nowrap;
+    }
+
+    .game-status::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #c9a65c;
+      box-shadow: 0 0 10px rgba(216, 182, 106, .9);
     }
 
     #fullscreen-button {
-      border: 1px solid #454c5b;
-      border-radius: 7px;
-      padding: 7px 11px;
-      background: #292e39;
-      color: #f4f5f7;
-      font: inherit;
-      font-size: 12px;
+      min-height: 39px;
+      padding: 0 17px;
+      border: 1px solid rgba(216, 182, 106, .75);
+      border-radius: 2px;
+      background: linear-gradient(135deg, rgba(216, 182, 106, .2), rgba(91, 62, 26, .28));
+      color: var(--gold-light);
+      font-family: "Noto Serif JP", serif;
+      font-size: 11px;
+      letter-spacing: .08em;
       cursor: pointer;
+      transition: background .2s ease, box-shadow .2s ease, border-color .2s ease;
     }
 
     #fullscreen-button:hover {
-      background: #373e4b;
+      border-color: var(--gold-light);
+      background: linear-gradient(135deg, rgba(216, 182, 106, .34), rgba(91, 62, 26, .42));
+      box-shadow: 0 0 18px rgba(216, 182, 106, .17), inset 0 0 12px rgba(216, 182, 106, .08);
+    }
+
+    #fullscreen-button:focus-visible {
+      outline: 2px solid var(--gold-light);
+      outline-offset: 3px;
     }
 
     #game-container {
@@ -78,58 +184,105 @@
       flex: 1 1 auto;
       min-width: 0;
       min-height: 0;
-      background: #090a0d;
+      padding: clamp(8px, 1.5vw, 18px);
+      background:
+        radial-gradient(ellipse at center, rgba(108, 76, 33, .12), transparent 68%),
+        #090807;
+    }
+
+    .game-frame-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 2px;
+      background: linear-gradient(135deg, #f1d994 0%, #8c672d 17%, #e4c77e 34%, #4b351b 51%, #d6b66d 72%, #725126 88%, #f1d994 100%);
+      box-shadow: 0 0 0 1px rgba(244, 223, 158, .16), 0 12px 42px rgba(0, 0, 0, .58), 0 0 30px rgba(175, 128, 54, .12);
+    }
+
+    .game-frame-shell::before {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      inset: 6px;
+      pointer-events: none;
+      border: 1px solid rgba(244, 223, 158, .38);
     }
 
     #game-frame {
+      position: relative;
+      z-index: 0;
       display: block;
       width: 100%;
       height: 100%;
       border: 0;
-      background: #090a0d;
+      background: #050505;
     }
 
-    #game-container:fullscreen {
+    body:fullscreen {
       width: 100%;
       height: 100%;
+      background: var(--ink);
     }
 
-    @media (max-width: 480px) {
+    body:fullscreen #game-container {
+      padding: 10px;
+    }
+
+    @media (max-width: 560px) {
       .game-header {
-        height: 48px;
-        flex-basis: 48px;
-        padding: 0 12px;
+        min-height: 64px;
+        flex-basis: 64px;
+        gap: 8px;
+        padding: 0 13px;
       }
 
-      .game-title { font-size: 14px; }
+      .brand { gap: 10px; }
+      .brand-mark { width: 36px; height: 36px; flex-basis: 36px; font-size: 17px; }
+      .eyebrow { font-size: 7px; letter-spacing: .22em; }
+      .game-title { font-size: 15px; letter-spacing: .07em; }
+      .game-actions { gap: 0; }
       .game-status { display: none; }
+      #fullscreen-button { min-height: 35px; padding: 0 10px; font-size: 10px; }
+      #game-container { padding: 7px; }
+      .game-frame-shell::before { inset: 4px; }
+    }
+
+    @media (max-width: 360px) {
+      .brand-mark { display: none; }
+      .game-title { font-size: 13px; }
+      #fullscreen-button { padding: 0 7px; }
     }
   </style>
 </head>
 <body>
   <header class="game-header">
-    <h1 class="game-title">Store My Only</h1>
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">S</div>
+      <div class="brand-copy">
+        <span class="eyebrow">The Private Game Collection</span>
+        <h1 class="game-title">Store My Only</h1>
+      </div>
+    </div>
     <div class="game-actions">
-      <span class="game-status">GAME</span>
-      <button id="fullscreen-button" type="button" aria-label="ゲームを全画面表示">
-        全画面表示
-      </button>
+      <span class="game-status">NOW PLAYING</span>
+      <button id="fullscreen-button" type="button" aria-label="ゲームを全画面表示">全画面で遊ぶ</button>
     </div>
   </header>
 
   <main id="game-container">
-    <iframe
-      id="game-frame"
-      src="./game.html"
-      title="Store My Only ゲーム画面"
-      allow="fullscreen; autoplay"
-      allowfullscreen
-      loading="eager"
-    ></iframe>
+    <div class="game-frame-shell">
+      <iframe
+        id="game-frame"
+        src="./game.html"
+        title="Store My Only ゲーム画面"
+        allow="fullscreen; autoplay"
+        allowfullscreen
+        loading="eager"
+      ></iframe>
+    </div>
   </main>
 
   <script>
-    const container = document.getElementById("game-container");
     const fullscreenButton = document.getElementById("fullscreen-button");
 
     fullscreenButton.addEventListener("click", async () => {
@@ -137,7 +290,7 @@
         if (document.fullscreenElement) {
           await document.exitFullscreen();
         } else {
-          await container.requestFullscreen();
+          await document.documentElement.requestFullscreen();
         }
       } catch (error) {
         console.error("全画面表示を切り替えられませんでした:", error);
@@ -145,9 +298,12 @@
     });
 
     document.addEventListener("fullscreenchange", () => {
-      fullscreenButton.textContent = document.fullscreenElement
-        ? "全画面表示を終了"
-        : "全画面表示";
+      const isFullscreen = Boolean(document.fullscreenElement);
+      fullscreenButton.textContent = isFullscreen ? "通常表示に戻る" : "全画面で遊ぶ";
+      fullscreenButton.setAttribute(
+        "aria-label",
+        isFullscreen ? "全画面表示を終了" : "ゲームを全画面表示"
+      );
     });
   </script>
 </body>
