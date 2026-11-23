@@ -46,6 +46,13 @@
       filter:blur(12px);
     }
     @keyframes seaDrift { from{transform:translateX(-2%) translateY(0)} to{transform:translateX(2%) translateY(5px)} }
+    .hill-character {
+      position:absolute; z-index:2; left:clamp(22%,32vw,35%);
+      bottom:32vh; width:min(20vw,84px); height:auto;
+      object-fit:contain; object-position:center bottom;
+      pointer-events:none; user-select:none;
+      filter:drop-shadow(0 3px 8px rgba(0,0,0,.65));
+    }
     .hill-silhouette {
       position:absolute; left:-2%; bottom:-1px; z-index:1;
       width:min(72vw,950px); height:40vh; min-height:220px;
@@ -183,6 +190,7 @@
       .tagline { letter-spacing:.07em; }
       .sigil { width:105vw; }
       .fantasy-sea { height:25vh; min-height:130px; }
+      .hill-character { left:27%; bottom:32vh; width:min(20vw,84px); }
       .back-link { bottom:5%; font-size:.62rem; white-space:nowrap; }
       .version { display:none; }
     }
@@ -200,6 +208,7 @@
     <div class="light-beam" aria-hidden="true"></div>
     <div class="fantasy-sea" aria-hidden="true"></div>
     <div class="hill-silhouette" aria-hidden="true"></div>
+    <img class="hill-character" src="./assets/リーナ_Dark.png" alt="" aria-hidden="true">
     <div class="vignette" aria-hidden="true"></div>
     <div class="frame" aria-hidden="true"></div>
     <span class="corner tl" aria-hidden="true"></span>
