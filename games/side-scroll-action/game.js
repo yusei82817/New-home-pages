@@ -2,6 +2,8 @@
   'use strict';
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
+  const playerSprite = new Image();
+  playerSprite.src = 'SD_dot.png';
   const W = canvas.width, H = canvas.height;
   const coinLabel = document.getElementById('coin-count');
   const timerLabel = document.getElementById('timer');
@@ -39,7 +41,7 @@
   let player, camera, coins, elapsed, state, lastTime, particles;
 
   function reset(){
-    player={x:75,y:380,w:28,h:42,vx:0,vy:0,onGround:false,face:1,invuln:0};
+    player={x:75,y:380,w:28,h:42,vx:0,vy:0,onGround:false,face:1,invuln:0,moveStart:0,wasMoving:false};
     camera=0;coins=0;elapsed=0;particles=[];gravePlatforms.length=0;state='ready';coinSpots.forEach(c=>c.taken=false);
     updateHud();draw();
   }
@@ -74,6 +76,10 @@
     if(state!=='playing')return;
     elapsed+=dt;
     const left=keys.has('ArrowLeft'),right=keys.has('ArrowRight');
+    const movingInput=left||right;
+    if(movingInput&&!player.wasMoving&&player.onGround)player.moveStart=.14;
+    player.wasMoving=movingInput;
+    if(player.moveStart>0)player.moveStart=Math.max(0,player.moveStart-dt);
     const accel=1900, maxSpeed=310;
     if(left){player.vx-=accel*dt;player.face=-1}
     if(right){player.vx+=accel*dt;player.face=1}
@@ -239,26 +245,36 @@
   function drawPlayer(){
     if(player.invuln>0 && Math.floor(performance.now()/80)%2===0)return;
     const x=player.x-camera,y=player.y;
-    // Soft, offset contact shadow anchors the pixel-art hero to the world.
+    // Soft contact shadow keeps the sprite grounded.
     ctx.save();ctx.globalAlpha=.28;ctx.fillStyle='#183b3d';
     ctx.beginPath();ctx.ellipse(x+player.w/2,y+player.h+3,18,5,0,0,Math.PI*2);ctx.fill();ctx.restore();
+
+    if(playerSprite.complete&&playerSprite.naturalWidth>=750&&playerSprite.naturalHeight>=332){
+      // Sheet order is intentionally non-sequential: run=left, idle=middle, start=right.
+      const sourceX=Math.abs(player.vx)>30?(player.moveStart>0?500:0):250;
+      const drawW=38,drawH=50;
+      ctx.save();
+      ctx.translate(Math.round(x+player.w/2),Math.round(y+player.h));
+      // The source artwork faces left, so flip only when facing right.
+      ctx.scale(player.face===1?-1:1,1);
+      ctx.imageSmoothingEnabled=false;
+      ctx.drawImage(playerSprite,sourceX,0,250,332,-drawW/2,-drawH,drawW,drawH);
+      ctx.restore();
+      return;
+    }
+
+    // Fallback while the sprite sheet is loading or if it is unavailable.
     ctx.save();ctx.translate(Math.round(x+player.w/2),Math.round(y+player.h/2));ctx.scale(player.face,1);
-    // Backpack silhouette.
     rounded(-13,-7,7,17,2,'#4b6f62');
-    // Tunic and boots, drawn with crisp layered highlights.
     rounded(-10,-12,20,25,4,'#e9a16f');
     ctx.fillStyle='#ffd2a0';ctx.fillRect(-8,-9,16,3);
     ctx.fillStyle='#bd765b';ctx.fillRect(-9,7,18,4);
-    // Hood / hair.
     rounded(-11,-22,22,15,5,'#283b50');
     ctx.fillStyle='#40566a';ctx.fillRect(-8,-21,14,3);
     ctx.fillStyle='#f3d4ad';ctx.fillRect(-5,-12,12,7);
     ctx.fillStyle='#25384a';ctx.fillRect(3,-10,3,3);
-    // Scarf catches the light.
     ctx.fillStyle='#c96e62';ctx.beginPath();ctx.moveTo(-5,-4);ctx.lineTo(9,-2);ctx.lineTo(14,4);ctx.lineTo(5,2);ctx.closePath();ctx.fill();
-    // Arms.
     rounded(-14,-7,6,14,2,'#e9a16f');rounded(8,-7,6,14,2,'#e9a16f');
-    // Boots.
     rounded(-11,10,9,9,2,'#26394d');rounded(2,10,10,9,2,'#26394d');
     ctx.fillStyle='#9bb4a2';ctx.fillRect(-10,16,8,2);ctx.fillRect(3,16,8,2);
     ctx.restore();
