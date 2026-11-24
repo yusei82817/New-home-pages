@@ -30,7 +30,7 @@
   };
 
   const state = {
-    camera: { x: 6.5, y: 5.5 },
+    camera: { x: 12.5, y: 8.5 },
     money: CONFIG.startMoney,
     year: 1,
     month: 1,
@@ -62,11 +62,11 @@
   }
 
   // ---------- World ----------
-  // L-shaped blacksmith shop. null cells are outside the building.
-  const SHOP_W = 14, SHOP_H = 12;
+  // Expanded L-shaped shop: exactly 288 walkable/building tiles before the doorway cut-out.
+  const SHOP_W = 26, SHOP_H = 18;
   function insideShop(x, y) {
-    return (x >= 1 && x <= 12 && y >= 1 && y <= 6) ||
-           (x >= 1 && x <= 6 && y >= 7 && y <= 10);
+    return (x >= 1 && x <= 24 && y >= 1 && y <= 8) ||
+           (x >= 1 && x <= 12 && y >= 9 && y <= 16);
   }
   const MAP = Array.from({ length: SHOP_H }, (_, y) =>
     Array.from({ length: SHOP_W }, (_, x) => {
@@ -75,16 +75,27 @@
               !insideShop(x, y - 1) || !insideShop(x, y + 1)) ? "2" : "1";
     })
   );
+
+  // Main entrance: a two-tile opening on the south-facing wall.
+  MAP[16][5] = "1";
+  MAP[16][6] = "1";
+
   const shelves = [
-    { x: 3, y: 4, length: 2, vertical: false },
-    { x: 6, y: 4, length: 2, vertical: false },
-    { x: 9, y: 4, length: 2, vertical: false },
-    { x: 3, y: 7, length: 2, vertical: true },
-    { x: 5, y: 8, length: 2, vertical: true }
+    { x: 3, y: 3, length: 3, vertical: false },
+    { x: 8, y: 3, length: 3, vertical: false },
+    { x: 14, y: 3, length: 3, vertical: false },
+    { x: 19, y: 3, length: 3, vertical: false },
+    { x: 3, y: 6, length: 2, vertical: false },
+    { x: 8, y: 6, length: 2, vertical: false },
+    { x: 14, y: 6, length: 2, vertical: false },
+    { x: 19, y: 6, length: 2, vertical: false },
+    { x: 3, y: 11, length: 3, vertical: true },
+    { x: 7, y: 12, length: 3, vertical: true },
+    { x: 3, y: 15, length: 2, vertical: false }
   ];
   const MAP_W = SHOP_W, MAP_H = SHOP_H;
 
-  function tileAt(x, y) {
+    function tileAt(x, y) {
     const tx = Math.floor(x), ty = Math.floor(y);
     if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return null;
     return MAP[ty][tx];
