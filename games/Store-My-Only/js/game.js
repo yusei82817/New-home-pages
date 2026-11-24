@@ -31,7 +31,7 @@
   };
 
   const state = {
-    player: { x: 0, y: 0 },
+    player: { x: 2.5, y: 2.5 },
     camera: { x: 0, y: 0 },
     money: CONFIG.startMoney,
     year: 1,
@@ -60,15 +60,105 @@
   }
 
   // ---------- World ----------
+  // 4の直後の半角スペースは長尺棚が占有する2マス目。
+  const MAP_ROWS = [
+    "2222220222222",
+    "2111111111112",
+    "2111111111112",
+    "2111111111112",
+    "2111111111112",
+    "2111111111112",
+    "2113334 4 4 2",
+    "2222222222222"
+  ];
+  const MAP = MAP_ROWS.map((row) => {
+    const cells = [];
+    for (let i = 0; i < row.length; i++) {
+      const code = row[i];
+      if (code === " ") cells.push("4");
+      else {
+        cells.push(code);
+        if (code === "4" && row[i + 1] === " ") i++;
+      }
+    }
+    return cells;
+  });
+  const TILE_W = CONFIG.pixelsPerUnit;
+  const TILE_H = TILE_W / 2;
+  const MAP_W = MAP[0].length;
+  const MAP_H = MAP.length;
+
+  function tileAt(x, y) {
+    const tx = Math.floor(x), ty = Math.floor(y);
+    if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return "2";
+    return MAP[ty][tx] || "2";
+  }
+
+  function isBlocked(x, y) {
+    const tile = tileAt(x, y);
+    return tile === "2" || tile === "3" || tile === "4";
+  }
+
+  function drawDiamond(x, y, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x, y - TILE_H / 2);
+    ctx.lineTo(x + TILE_W / 2, y);
+    ctx.lineTo(x, y + TILE_H / 2);
+    ctx.lineTo(x - TILE_W / 2, y);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
   function drawMap() {
-    // TODO: ここに制作者が作成するマップデータの描画処理を接続する。
-    // マップのタイル、地形、建物、当たり判定はまだ定義しない。
-    ctx.fillStyle = "#34342d";
+    ctx.fillStyle = "#24231f";
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    for (let y = 0; y < MAP_H; y++) {
+      for (let x = 0; x < MAP_W; x++) {
+        const tile = MAP[y][x];
+        const p = worldToScreen(x + 0.5, y + 0.5);
+        if (tile === "2") {
+          const h = 25;
+          drawDiamond(p.x, p.y - h, "#62594c", "#9b8b72");
+          ctx.fillStyle = "#403a32";
+          ctx.beginPath();
+          ctx.moveTo(p.x - TILE_W / 2, p.y - h);
+          ctx.lineTo(p.x, p.y - TILE_H / 2 - h);
+          ctx.lineTo(p.x, p.y - TILE_H / 2);
+          ctx.lineTo(p.x - TILE_W / 2, p.y);
+          ctx.closePath(); ctx.fill();
+          ctx.fillStyle = "#51483d";
+          ctx.beginPath();
+          ctx.moveTo(p.x + TILE_W / 2, p.y - h);
+          ctx.lineTo(p.x, p.y - TILE_H / 2 - h);
+          ctx.lineTo(p.x, p.y - TILE_H / 2);
+          ctx.lineTo(p.x + TILE_W / 2, p.y);
+          ctx.closePath(); ctx.fill();
+        } else if (tile === "3" || tile === "4") {
+          drawDiamond(p.x, p.y, "#765438", "#bd9160");
+          ctx.fillStyle = "#4a3020";
+          ctx.fillRect(p.x - 14, p.y - 24, 28, 23);
+          ctx.fillStyle = "#a8794b";
+          ctx.fillRect(p.x - 12, p.y - 22, 24, 4);
+          ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
+        } else {
+          const floor = (x + y) % 2 ? "#777064" : "#81796b";
+          drawDiamond(p.x, p.y, tile === "0" ? "#9b805b" : floor, "#a59a85");
+          if (tile === "0") {
+            ctx.fillStyle = "#d4b47a";
+            ctx.fillRect(p.x - 8, p.y - 7, 16, 14);
+            ctx.fillStyle = "#493a2a";
+            ctx.fillRect(p.x + 4, p.y - 1, 2, 2);
+          }
+        }
+      }
+    }
   }
 
   function worldToScreen(x, y) {
-    // 2.5D斜め見下ろし用の簡易座標変換。
     const scale = CONFIG.pixelsPerUnit;
     return {
       x: canvasWidth / 2 + (x - state.camera.x - y + state.camera.y) * scale * 0.5,
@@ -89,8 +179,11 @@
     if (dx !== 0 || dy !== 0) {
       const length = Math.hypot(dx, dy);
       const step = CONFIG.moveSpeed * deltaSeconds / length;
-      state.player.x += dx * step;
-      state.player.y += dy * step;
+      const nextX = state.player.x + dx * step;
+      const nextY = state.player.y + dy * step;
+      const radius = 0.18;
+      if (!isBlocked(nextX + Math.sign(dx) * radius, state.player.y)) state.player.x = nextX;
+      if (!isBlocked(state.player.x, nextY + Math.sign(dy) * radius)) state.player.y = nextY;
     }
 
     // Camera follows the player. Map boundaries will be added with map data.
@@ -164,7 +257,7 @@
   function openInteraction() {
     state.paused = true;
     ui.panelTitle.textContent = "鍛冶屋";
-    ui.panelDescription.textContent = "店舗・設備・商品データは今後接続します。マップと建物の配置は未設定です。";
+    ui.panelDescription.textContent = "廃れた鍜治場の初期店舗です。棚や設備の商品データは今後接続します。";
     ui.panel.hidden = false;
   }
 
