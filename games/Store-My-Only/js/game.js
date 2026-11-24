@@ -25,14 +25,12 @@
   const CONFIG = {
     saveKey: "store-my-only-save-v1",
     pixelsPerUnit: 56,
-    moveSpeed: 3.2,
     startMoney: 1000,
     startHour: 8
   };
 
   const state = {
-    player: { x: 2.5, y: 2.5 },
-    camera: { x: 0, y: 0 },
+    camera: { x: 6.5, y: 5.5 },
     money: CONFIG.startMoney,
     year: 1,
     month: 1,
@@ -46,7 +44,6 @@
     paused: false
   };
 
-  const keys = new Set();
   let lastFrame = 0;
   let canvasWidth = 0;
   let canvasHeight = 0;
@@ -65,39 +62,36 @@
   }
 
   // ---------- World ----------
-  // 4の直後の半角スペースは長尺棚が占有する2マス目。
-  const MAP_ROWS = [
-    "2222220222222",
-    "2111111111112",
-    "2111111111112",
-    "2111111111112",
-    "2111111111112",
-    "2111111111112",
-    "2113334 4 4 2",
-    "2222222222222"
-  ];
+  // L-shaped blacksmith shop. null cells are outside the building.
+  const SHOP_W = 14, SHOP_H = 12;
+  function insideShop(x, y) {
+    return (x >= 1 && x <= 12 && y >= 1 && y <= 6) ||
+           (x >= 1 && x <= 6 && y >= 7 && y <= 10);
+  }
+  const MAP = Array.from({ length: SHOP_H }, (_, y) =>
+    Array.from({ length: SHOP_W }, (_, x) => {
+      if (!insideShop(x, y)) return null;
+      return (!insideShop(x - 1, y) || !insideShop(x + 1, y) ||
+              !insideShop(x, y - 1) || !insideShop(x, y + 1)) ? "2" : "1";
+    })
+  );
   const shelves = [
-    { x: 3, y: 6, length: 1, vertical: false },
-    { x: 4, y: 6, length: 1, vertical: false },
-    { x: 5, y: 6, length: 1, vertical: false },
-    { x: 6, y: 6, length: 2, vertical: false },
-    { x: 8, y: 6, length: 2, vertical: false },
-    { x: 10, y: 6, length: 2, vertical: false }
+    { x: 3, y: 4, length: 2, vertical: false },
+    { x: 6, y: 4, length: 2, vertical: false },
+    { x: 9, y: 4, length: 2, vertical: false },
+    { x: 3, y: 7, length: 2, vertical: true },
+    { x: 5, y: 8, length: 2, vertical: true }
   ];
-  const MAP = MAP_ROWS.map((row) => [...row].map((code) => code === " " || code === "3" || code === "4" ? "1" : code));
-  const TILE_W = CONFIG.pixelsPerUnit;
-  const TILE_H = TILE_W / 2;
-  const MAP_W = MAP[0].length;
-  const MAP_H = MAP.length;
+  const MAP_W = SHOP_W, MAP_H = SHOP_H;
 
   function tileAt(x, y) {
     const tx = Math.floor(x), ty = Math.floor(y);
-    if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return "2";
-    return MAP[ty][tx] || "2";
+    if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return null;
+    return MAP[ty][tx];
   }
 
   function isBlocked(x, y) {
-    if (tileAt(x, y) === "2") return true;
+    if (tileAt(x, y) !== "1") return true;
     return shelves.some((shelf) => {
       const w = shelf.vertical ? 1 : shelf.length;
       const h = shelf.vertical ? shelf.length : 1;
@@ -151,7 +145,7 @@
     const tiles = [];
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
-        tiles.push({ x, y, tile: MAP[y][x], depth: cameraDepth(x + 0.5, y + 0.5) });
+        if (MAP[y][x] !== null) tiles.push({ x, y, tile: MAP[y][x], depth: cameraDepth(x + 0.5, y + 0.5) });
       }
     }
     tiles.sort((a, b) => a.depth - b.depth || a.y - b.y || a.x - b.x);
@@ -206,34 +200,32 @@
   }
 
   function drawShelves() {
-    shelves.forEach((shelf, index) => {
-      const w = shelf.vertical ? 1 : shelf.length;
-      const h = shelf.vertical ? shelf.length : 1;
-      const a = worldToScreen(shelf.x, shelf.y);
-      const b = worldToScreen(shelf.x + w, shelf.y);
-      const c = worldToScreen(shelf.x + w, shelf.y + h);
-      const d = worldToScreen(shelf.x, shelf.y + h);
-      const lift = 15;
-      const selected = state.selectedShelf === index;
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y - lift); ctx.lineTo(b.x, b.y - lift);
-      ctx.lineTo(c.x, c.y - lift); ctx.lineTo(d.x, d.y - lift); ctx.closePath();
-      ctx.fillStyle = selected ? "#a87843" : "#765035";
-      ctx.strokeStyle = selected ? "#ffe2a0" : "#b88758";
-      ctx.lineWidth = selected ? 2 : 0.8;
-      ctx.fill(); ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(d.x, d.y - lift); ctx.lineTo(c.x, c.y - lift);
-      ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.closePath();
-      ctx.fillStyle = "#4a3020"; ctx.fill(); ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(b.x, b.y - lift); ctx.lineTo(c.x, c.y - lift);
-      ctx.lineTo(c.x, c.y); ctx.lineTo(b.x, b.y); ctx.closePath();
-      ctx.fillStyle = "#5a3b27"; ctx.fill(); ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y - lift); ctx.lineTo(b.x, b.y - lift);
-      ctx.lineTo(c.x, c.y - lift); ctx.lineTo(d.x, d.y - lift);
-      ctx.strokeStyle = "#c99a68"; ctx.lineWidth = 1.2; ctx.stroke();
+    const ordered = shelves.map((shelf, index) => ({ shelf, index }))
+      .sort((a, b) => cameraDepth(a.shelf.x + (a.shelf.vertical ? .5 : a.shelf.length / 2), a.shelf.y + (a.shelf.vertical ? a.shelf.length / 2 : .5)) -
+                     cameraDepth(b.shelf.x + (b.shelf.vertical ? .5 : b.shelf.length / 2), b.shelf.y + (b.shelf.vertical ? b.shelf.length / 2 : .5)));
+    ordered.forEach(({ shelf, index }) => {
+      const w = shelf.vertical ? 1 : shelf.length, h = shelf.vertical ? shelf.length : 1;
+      const a = worldToScreen(shelf.x, shelf.y), b = worldToScreen(shelf.x + w, shelf.y);
+      const c = worldToScreen(shelf.x + w, shelf.y + h), d = worldToScreen(shelf.x, shelf.y + h);
+      const lift = 15, selected = state.selectedShelf === index;
+      const top = [a, b, c, d].map(p => ({ x: p.x, y: p.y - lift }));
+      ctx.beginPath(); ctx.moveTo(d.x,d.y-lift); ctx.lineTo(c.x,c.y-lift); ctx.lineTo(c.x,c.y); ctx.lineTo(d.x,d.y); ctx.closePath();
+      ctx.fillStyle="#4a3020"; ctx.fill(); ctx.strokeStyle="#b88758"; ctx.lineWidth=.8; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(b.x,b.y-lift); ctx.lineTo(c.x,c.y-lift); ctx.lineTo(c.x,c.y); ctx.lineTo(b.x,b.y); ctx.closePath();
+      ctx.fillStyle="#5a3b27"; ctx.fill(); ctx.stroke();
+      // Fill the entire tabletop after its sides, then outline it.
+      ctx.beginPath(); ctx.moveTo(top[0].x,top[0].y); top.slice(1).forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
+      ctx.fillStyle=selected?"#a87843":"#765035"; ctx.fill();
+      ctx.strokeStyle=selected?"#ffe2a0":"#c99a68"; ctx.lineWidth=selected?2:1; ctx.stroke();
+      if (shelf.length > 1) {
+        ctx.strokeStyle="rgba(35,22,13,.38)"; ctx.lineWidth=.7;
+        for(let n=1;n<shelf.length;n++){
+          const t=n/shelf.length;
+          const p1={x:top[0].x+(top[1].x-top[0].x)*t,y:top[0].y+(top[1].y-top[0].y)*t};
+          const p2={x:top[3].x+(top[2].x-top[3].x)*t,y:top[3].y+(top[2].y-top[3].y)*t};
+          ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();
+        }
+      }
     });
   }
 
@@ -269,56 +261,7 @@
     };
   }
 
-  // ---------- Player ----------
-  function updatePlayer(deltaSeconds) {
-    if (state.paused) return;
-    let dx = 0;
-    let dy = 0;
-    if (keys.has("w") || keys.has("arrowup")) dy -= 1;
-    if (keys.has("s") || keys.has("arrowdown")) dy += 1;
-    if (keys.has("a") || keys.has("arrowleft")) dx -= 1;
-    if (keys.has("d") || keys.has("arrowright")) dx += 1;
-
-    if (dx !== 0 || dy !== 0) {
-      const screenDx = dx, screenDy = dy;
-      const cos = Math.cos(state.viewAngle), sin = Math.sin(state.viewAngle);
-      dx = screenDx * cos + screenDy * sin;
-      dy = -screenDx * sin + screenDy * cos;
-      const length = Math.hypot(dx, dy);
-      const step = CONFIG.moveSpeed * deltaSeconds / length;
-      const nextX = state.player.x + dx * step;
-      const nextY = state.player.y + dy * step;
-      const radius = 0.18;
-      if (!isBlocked(nextX + Math.sign(dx) * radius, state.player.y)) state.player.x = nextX;
-      if (!isBlocked(state.player.x, nextY + Math.sign(dy) * radius)) state.player.y = nextY;
-    }
-
-    // Camera follows the player. Map boundaries will be added with map data.
-    state.camera.x += (state.player.x - state.camera.x) * Math.min(1, deltaSeconds * 8);
-    state.camera.y += (state.player.y - state.camera.y) * Math.min(1, deltaSeconds * 8);
-  }
-
-  function drawPlayer() {
-    const p = worldToScreen(state.player.x, state.player.y);
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.fillStyle = "rgba(0,0,0,.28)";
-    ctx.beginPath();
-    ctx.ellipse(0, 8, 13, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#d9b879";
-    ctx.strokeStyle = "#fff0c5";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(0, -15);
-    ctx.lineTo(10, 0);
-    ctx.lineTo(0, 13);
-    ctx.lineTo(-10, 0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }
+  // The shopkeeper does not have free movement in this management view.
 
   // ---------- Business ----------
   function toggleShop() {
@@ -376,7 +319,6 @@
   // ---------- Save / Load ----------
   function saveGame() {
     const payload = {
-      player: state.player,
       money: state.money,
       year: state.year,
       month: state.month,
@@ -398,15 +340,10 @@
       const raw = localStorage.getItem(CONFIG.saveKey);
       if (!raw) return;
       const saved = JSON.parse(raw);
-      if (saved.player && Number.isFinite(saved.player.x) && Number.isFinite(saved.player.y)) {
-        state.player = saved.player;
-      }
       for (const key of ["money", "year", "month", "day", "minutes"]) {
         if (Number.isFinite(saved[key])) state[key] = saved[key];
       }
       if (typeof saved.isShopOpen === "boolean") state.isShopOpen = saved.isShopOpen;
-      state.camera.x = state.player.x;
-      state.camera.y = state.player.y;
     } catch (error) {
       console.warn("Save data could not be loaded:", error);
     }
@@ -416,10 +353,9 @@
   window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
-    keys.add(key);
     if (event.repeat) return;
-    if (key === "q") state.targetViewAngle -= Math.PI / 2;
-    if (key === "e") state.targetViewAngle += Math.PI / 2;
+    if (key === "q") state.targetViewAngle -= Math.PI / 36;
+    if (key === "e") state.targetViewAngle += Math.PI / 36;
     if (key === "f" && ui.panel.hidden) openInteraction();
     if (key === "r") rotateSelectedShelf();
     if (key === "escape" && !ui.panel.hidden) closeInteraction();
@@ -442,8 +378,6 @@
     state.selectedShelf = found;
     if (found >= 0) setMessage("棚を選択中。長尺棚はRキーで90度回転。");
   });
-  window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
-  window.addEventListener("blur", () => keys.clear());
   ui.shopToggle.addEventListener("click", toggleShop);
   ui.closePanel.addEventListener("click", closeInteraction);
   window.addEventListener("resize", resizeCanvas);
@@ -455,10 +389,8 @@
     const rotationDelta = state.targetViewAngle - state.viewAngle;
     state.viewAngle += rotationDelta * (1 - Math.exp(-deltaSeconds * 10));
     if (Math.abs(rotationDelta) < 0.0005) state.viewAngle = state.targetViewAngle;
-    updatePlayer(deltaSeconds);
     updateGameTime(deltaSeconds);
     drawMap();
-    drawPlayer();
     updateUI();
     requestAnimationFrame(frame);
   }
