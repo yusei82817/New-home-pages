@@ -239,9 +239,9 @@
 
     if (dx !== 0 || dy !== 0) {
       const screenDx = dx, screenDy = dy;
-      if (state.viewRotation === 1) { dx = -screenDy; dy = screenDx; }
+      if (state.viewRotation === 1) { dx = screenDy; dy = -screenDx; }
       else if (state.viewRotation === 2) { dx = -screenDx; dy = -screenDy; }
-      else if (state.viewRotation === 3) { dx = screenDy; dy = -screenDx; }
+      else if (state.viewRotation === 3) { dx = -screenDy; dy = screenDx; }
       const length = Math.hypot(dx, dy);
       const step = CONFIG.moveSpeed * deltaSeconds / length;
       const nextX = state.player.x + dx * step;
