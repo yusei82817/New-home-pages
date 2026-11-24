@@ -148,7 +148,11 @@
   }
 
   function drawMap() {
-    ctx.fillStyle = "#24231f";
+    const backdrop = ctx.createRadialGradient(canvasWidth * .52, canvasHeight * .42, 30, canvasWidth * .5, canvasHeight * .5, Math.max(canvasWidth, canvasHeight) * .78);
+    backdrop.addColorStop(0, "#49443a");
+    backdrop.addColorStop(.58, "#292720");
+    backdrop.addColorStop(1, "#11110f");
+    ctx.fillStyle = backdrop;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // Draw back-to-front using the current camera angle. Without depth sorting,
@@ -189,6 +193,13 @@
           }
         }
         drawTileTop(x, y, "#62594c", "rgba(190,174,148,.48)", h);
+        ctx.beginPath();
+        ctx.moveTo(top[0].x, top[0].y + 1);
+        ctx.lineTo(top[1].x, top[1].y + 1);
+        ctx.lineTo(top[2].x, top[2].y + 1);
+        ctx.strokeStyle = "rgba(245,220,174,.22)";
+        ctx.lineWidth = 1.1;
+        ctx.stroke();
       } else if (tile === "3" || tile === "4") {
         drawTileTop(x, y, "#765438", "#bd9160");
         ctx.fillStyle = "#4a3020";
@@ -198,7 +209,20 @@
         ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
       } else {
         const floor = (x + y) % 2 ? "#797468" : "#7e796e";
-        drawTileTop(x, y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.22)");
+        drawTileTop(x, y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.28)");
+        if (tile !== "0") {
+          const inset = 0.12;
+          const p1 = worldToScreen(x + inset, y + inset);
+          const p2 = worldToScreen(x + 1 - inset, y + inset);
+          const p3 = worldToScreen(x + 1 - inset, y + 1 - inset);
+          const p4 = worldToScreen(x + inset, y + 1 - inset);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+          ctx.lineTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.closePath();
+          ctx.strokeStyle = "rgba(35,31,25,.10)";
+          ctx.lineWidth = .65;
+          ctx.stroke();
+        }
         if (tile === "0") {
           ctx.fillStyle = "#d4b47a";
           ctx.fillRect(p.x - 8, p.y - 7, 16, 14);
@@ -208,6 +232,12 @@
       }
     }
     drawShelves();
+    const light = ctx.createRadialGradient(canvasWidth * .52, canvasHeight * .48, 12, canvasWidth * .52, canvasHeight * .48, Math.max(canvasWidth, canvasHeight) * .58);
+    light.addColorStop(0, "rgba(255,205,125,.075)");
+    light.addColorStop(.55, "rgba(255,178,92,.025)");
+    light.addColorStop(1, "rgba(0,0,0,.28)");
+    ctx.fillStyle = light;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
   function drawShelves() {
@@ -220,6 +250,16 @@
       const c = worldToScreen(shelf.x + w, shelf.y + h), d = worldToScreen(shelf.x, shelf.y + h);
       const lift = 15, selected = state.selectedShelf === index;
       const top = [a, b, c, d].map(p => ({ x: p.x, y: p.y - lift }));
+      ctx.save();
+      ctx.globalAlpha = .22;
+      ctx.filter = "blur(5px)";
+      ctx.beginPath();
+      ctx.moveTo(a.x + 3, a.y + 4); ctx.lineTo(b.x + 3, b.y + 4);
+      ctx.lineTo(c.x + 3, c.y + 4); ctx.lineTo(d.x + 3, d.y + 4);
+      ctx.closePath();
+      ctx.fillStyle = "#080604";
+      ctx.fill();
+      ctx.restore();
       ctx.beginPath(); ctx.moveTo(d.x,d.y-lift); ctx.lineTo(c.x,c.y-lift); ctx.lineTo(c.x,c.y); ctx.lineTo(d.x,d.y); ctx.closePath();
       ctx.fillStyle="#4a3020"; ctx.fill(); ctx.strokeStyle="#b88758"; ctx.lineWidth=.8; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(b.x,b.y-lift); ctx.lineTo(c.x,c.y-lift); ctx.lineTo(c.x,c.y); ctx.lineTo(b.x,b.y); ctx.closePath();
@@ -228,6 +268,17 @@
       ctx.beginPath(); ctx.moveTo(top[0].x,top[0].y); top.slice(1).forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
       ctx.fillStyle=selected?"#a87843":"#765035"; ctx.fill();
       ctx.strokeStyle=selected?"#ffe2a0":"#c99a68"; ctx.lineWidth=selected?2:1; ctx.stroke();
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(top[0].x,top[0].y); top.slice(1).forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath(); ctx.clip();
+      ctx.strokeStyle = "rgba(239,190,126,.19)";
+      ctx.lineWidth = .8;
+      for (let g = 1; g <= 3; g++) {
+        const t = g / 4;
+        const p1 = {x:top[0].x+(top[3].x-top[0].x)*t,y:top[0].y+(top[3].y-top[0].y)*t};
+        const p2 = {x:top[1].x+(top[2].x-top[1].x)*t,y:top[1].y+(top[2].y-top[1].y)*t};
+        ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+      }
+      ctx.restore();
       if (shelf.length > 1) {
         ctx.strokeStyle="rgba(35,22,13,.38)"; ctx.lineWidth=.7;
         for(let n=1;n<shelf.length;n++){
