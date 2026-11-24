@@ -198,13 +198,19 @@
   function rotateSelectedShelf() {
     const shelf = shelves[state.selectedShelf];
     if (!shelf || shelf.length !== 2) { setMessage("回転できる長尺棚を選択してください。"); return; }
-    const w = shelf.vertical ? 2 : 1;
-    const h = shelf.vertical ? 1 : 2;
-    for (let y = shelf.y; y < shelf.y + h; y++) {
-      for (let x = shelf.x; x < shelf.x + w; x++) {
+    const nextX = shelf.x;
+    const nextY = shelf.vertical ? shelf.y + 1 : shelf.y - 1;
+    const nextW = shelf.vertical ? 2 : 1;
+    const nextH = shelf.vertical ? 1 : 2;
+    for (let y = nextY; y < nextY + nextH; y++) {
+      for (let x = nextX; x < nextX + nextW; x++) {
         if (tileAt(x, y) === "2") { setMessage("壁があるため回転できません。"); return; }
+        const occupied = shelves.some((other, i) => i !== state.selectedShelf && x >= other.x && x < other.x + (other.vertical ? 1 : other.length) && y >= other.y && y < other.y + (other.vertical ? other.length : 1));
+        if (occupied) { setMessage("ほかの棚と重なるため回転できません。"); return; }
       }
     }
+    shelf.x = nextX;
+    shelf.y = nextY;
     shelf.vertical = !shelf.vertical;
     setMessage("長尺棚を90度回転しました。");
   }
