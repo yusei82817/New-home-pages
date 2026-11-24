@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>SKYBOUND - 2D ACTION</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./game.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="back" href="../index.html">← GAMES</a>
+      <div class="brand"><span class="brand-mark">S</span><span>SKYBOUND <small>2D SIDE-SCROLL ACTION</small></span></div>
+      <div class="top-note">CHAPTER 01 <b>THE GREEN FRONTIER</b></div>
+    </header>
+
+    <section class="intro">
+      <div>
+        <p class="eyebrow">A LITTLE ADVENTURE BEGINS</p>
+        <h1>RUN BEYOND<br><em>THE HORIZON.</em></h1>
+        <p class="lead">走って、跳んで、コインを集めよう。ゴールの旗を目指せ。</p>
+      </div>
+      <div class="intro-side"><span class="sun"></span><span class="side-label">WORLD 01<br><strong>GREEN HILLS</strong></span></div>
+    </section>
+
+    <section class="game-panel" aria-label="ゲーム画面">
+      <div class="hud">
+        <div class="hud-item"><span>WORLD</span><strong>01 - 01</strong></div>
+        <div class="hud-item"><span>COINS</span><strong id="coin-count">0 <i>/ 12</i></strong></div>
+        <div class="hud-item"><span>TIME</span><strong id="timer">000</strong></div>
+        <div class="hud-item status"><span>STATUS</span><strong id="status">READY</strong></div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="game" width="960" height="540" aria-label="横スクロールアクションゲーム"></canvas>
+        <div class="overlay" id="overlay">
+          <div class="overlay-card">
+            <span class="overlay-kicker">WORLD 01 · STAGE 01</span>
+            <h2 id="overlay-title">READY TO<br><em>EXPLORE?</em></h2>
+            <p id="overlay-text">矢印キーで移動、スペースキーでジャンプ。</p>
+            <button id="start-button">ADVENTURE START <span>→</span></button>
+          </div>
+        </div>
+      </div>
+      <div class="game-footer">
+        <div class="controls"><span><kbd>←</kbd><kbd>→</kbd> MOVE</span><span><kbd>SPACE</kbd> JUMP</span><span><kbd>R</kbd> RESTART</span></div>
+        <button class="restart" id="restart-button">↻ RESTART</button>
+      </div>
+    </section>
+
+    <section class="bottom-grid">
+      <article><span class="bottom-icon">01</span><div><h3>KEEP MOVING</h3><p>足場から足場へ。画面の先には新しい景色が待っている。</p></div></article>
+      <article><span class="bottom-icon">02</span><div><h3>WATCH YOUR STEP</h3><p>赤いトゲに触れるとスタート地点からやり直し。</p></div></article>
+      <article><span class="bottom-icon">03</span><div><h3>REACH THE FLAG</h3><p>コインを集めながら、ステージの最後を目指そう。</p></div></article>
+    </section>
+    <footer class="footer"><span>SKYBOUND</span><span>BUILT WITH CANVAS API · NEW-HOME-PAGES</span></footer>
+  </main>
+</body>
+</html>
