@@ -1,0 +1,49 @@
+:root {
+  color-scheme: dark;
+  --gold: #d7b66e;
+  --gold-light: #f2dfaa;
+  --ink: #17130e;
+  --panel: rgba(25, 21, 16, .92);
+  --line: rgba(215, 182, 110, .48);
+  --text: #f4eddf;
+  font-family: "Yu Mincho", "Noto Serif JP", serif;
+}
+* { box-sizing: border-box; }
+html, body, #game-root { width: 100%; height: 100%; min-width: 320px; min-height: 240px; margin: 0; overflow: hidden; }
+body { background: #24231e; color: var(--text); }
+#game-root { position: relative; isolation: isolate; background: #34342d; }
+#game-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hud { position: absolute; z-index: 2; border: 1px solid var(--line); background: var(--panel); box-shadow: 0 8px 24px #0006; backdrop-filter: blur(8px); }
+.hud-top { top: 14px; left: 14px; right: 14px; min-height: 66px; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.hud-brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--gold); border-radius: 50%; color: var(--gold-light); font: 20px Georgia, serif; }
+.hud-brand small, .status-item small, .shop-panel small, .message-label, .panel-heading small { display: block; color: var(--gold); font: 9px Georgia, serif; letter-spacing: .16em; }
+.hud-brand strong { display: block; margin-top: 3px; font-size: 13px; letter-spacing: .08em; }
+.status-group { display: flex; gap: clamp(12px, 3vw, 34px); }
+.status-item strong { display: block; margin-top: 5px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.shop-panel { top: 96px; left: 14px; width: 190px; padding: 13px; }
+.shop-panel > strong { display: block; margin: 7px 0 3px; color: var(--gold-light); font-size: 16px; }
+.shop-panel > span { display: block; color: #c9c0ae; font-size: 11px; line-height: 1.6; }
+button { border: 1px solid var(--gold); border-radius: 2px; background: #72572c; color: #fff4d8; font: inherit; cursor: pointer; }
+button:hover { background: #92713a; }
+.shop-panel button { width: 100%; margin-top: 11px; padding: 7px; font-size: 11px; }
+.message-panel { left: 14px; bottom: 42px; width: min(390px, calc(100% - 28px)); padding: 11px 14px; }
+.message-panel p { margin: 5px 0 0; color: #e7dfd0; font-size: 12px; line-height: 1.6; }
+.control-hint { position: absolute; right: 14px; bottom: 14px; color: #eee4d1; font: 10px/1.5 sans-serif; text-shadow: 0 1px 4px #000; }
+.interaction-panel { position: absolute; z-index: 4; top: 50%; left: 50%; width: min(360px, calc(100% - 32px)); padding: 20px; transform: translate(-50%, -50%); border: 1px solid var(--gold); background: rgba(22, 18, 13, .97); box-shadow: 0 18px 60px #000b; }
+.interaction-panel[hidden] { display: none; }
+.panel-heading { display: flex; justify-content: space-between; align-items: center; }
+.panel-heading button { width: 28px; height: 28px; font-size: 18px; }
+.interaction-panel h2 { margin: 18px 0 8px; color: var(--gold-light); font-size: 18px; }
+.interaction-panel p { margin: 0; color: #d2c8b7; font-size: 13px; line-height: 1.8; }
+@media (max-width: 560px) {
+  .hud-top { top: 7px; left: 7px; right: 7px; min-height: 58px; padding: 8px; }
+  .brand-mark { width: 31px; height: 31px; }
+  .hud-brand strong { font-size: 11px; }
+  .hud-brand small, .status-item small { font-size: 8px; }
+  .status-group { gap: 9px; }
+  .status-item strong { font-size: 10px; }
+  .shop-panel { top: 76px; left: 7px; width: 150px; padding: 9px; }
+  .message-panel { left: 7px; bottom: 34px; }
+  .control-hint { right: 7px; bottom: 7px; font-size: 9px; }
+}
