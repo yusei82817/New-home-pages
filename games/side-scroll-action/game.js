@@ -34,12 +34,13 @@
   const coinSpots = [];
   const coinHeights = [390,300,390,350,330,260,390,280,330,390,260,350,390,300,390,280,330,260,390,300];
   for (let i=0;i<20;i++) coinSpots.push({x:220+i*410,y:coinHeights[i],taken:false});
+  const gravePlatforms = [];
   const keys = new Set();
   let player, camera, coins, elapsed, state, lastTime, particles;
 
   function reset(){
     player={x:75,y:380,w:28,h:42,vx:0,vy:0,onGround:false,face:1,invuln:0};
-    camera=0;coins=0;elapsed=0;particles=[];state='ready';coinSpots.forEach(c=>c.taken=false);
+    camera=0;coins=0;elapsed=0;particles=[];gravePlatforms.length=0;state='ready';coinSpots.forEach(c=>c.taken=false);
     updateHud();draw();
   }
   function updateHud(){
@@ -60,7 +61,12 @@
     for(let i=0;i<12;i++)particles.push({x,y,vx:(Math.random()-.5)*190,vy:(Math.random()-.7)*170,life:.55,color});
   }
   function respawn(){
-    burst(player.x+player.w/2,player.y+player.h/2,'#ff8a78');
+    const deathX=player.x+player.w/2;
+    const deathBase=Math.max(365,Math.min(480,player.y+player.h));
+    // A fallen hero leaves behind a permanent, climbable gravestone.
+    gravePlatforms.push({x:deathX-25,y:deathBase-42,w:50,h:10,baseY:deathBase});
+    burst(deathX,player.y+player.h/2,'#ff8a78');
+    burst(deathX,deathBase-34,'#d7e0d0');
     player.x=75;player.y=380;player.vx=0;player.vy=0;player.invuln=1.2;camera=0;
     state='playing';updateHud();
   }
@@ -79,7 +85,7 @@
     player.vy=Math.min(900,player.vy+1900*dt);
     player.y+=player.vy*dt;
     player.onGround=false;
-    for(const p of platforms){
+    for(const p of platforms.concat(gravePlatforms)){
       if(player.vy>=0 && oldY+player.h<=p.y+5 && player.y+player.h>=p.y && player.x+player.w>p.x && player.x<p.x+p.w){
         player.y=p.y-player.h;player.vy=0;player.onGround=true;
       }
@@ -180,6 +186,24 @@
       ctx.beginPath();ctx.ellipse(x,ground.y-3,5,12,-.45,0,Math.PI*2);ctx.fill();
       ctx.beginPath();ctx.ellipse(x+7,ground.y-2,4,9,.55,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#e9d58a';ctx.fillRect(x+1,ground.y-12,3,3);
+    }
+    // Tombstones left by previous attempts become solid platforms.
+    for(let i=0;i<gravePlatforms.length;i++){
+      const g=gravePlatforms[i],x=g.x-camera,base=g.baseY;
+      if(x+35<0||x-35>W)continue;
+      ctx.fillStyle='#243c3c88';ctx.beginPath();ctx.ellipse(x,base+3,30,7,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#657d7c';ctx.beginPath();
+      ctx.moveTo(x-21,base);ctx.lineTo(x-21,base-27);
+      ctx.quadraticCurveTo(x-21,base-45,x,base-45);
+      ctx.quadraticCurveTo(x+21,base-45,x+21,base-27);
+      ctx.lineTo(x+21,base);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#9aacab';ctx.beginPath();
+      ctx.moveTo(x-16,base-4);ctx.lineTo(x-16,base-27);
+      ctx.quadraticCurveTo(x-16,base-39,x,base-40);
+      ctx.lineTo(x,base-4);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#40595a';ctx.fillRect(x-24,base-5,48,7);
+      ctx.fillStyle='#dce6d4';ctx.fillRect(x-2,base-33,4,17);ctx.fillRect(x-7,base-28,14,4);
+      ctx.fillStyle='#c4d2c4';ctx.fillRect(x-11,base-11,22,2);
     }
     // Hazards with a dark contact shadow and bright bevel.
     for(const h of hazards){
