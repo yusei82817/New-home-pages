@@ -24,7 +24,7 @@
 
   const CONFIG = {
     saveKey: "store-my-only-save-v1",
-    pixelsPerUnit: 48,
+    pixelsPerUnit: 56,
     moveSpeed: 3.2,
     startMoney: 1000,
     startHour: 8
@@ -40,7 +40,8 @@
     minutes: CONFIG.startHour * 60,
     isShopOpen: false,
     scene: "blacksmith",
-    viewRotation: 0,
+    viewAngle: 0,
+    targetViewAngle: 0,
     selectedShelf: -1,
     paused: false
   };
@@ -104,15 +105,21 @@
     });
   }
 
-  function drawDiamond(x, y, fill, stroke) {
+  function drawTileTop(x, y, fill, stroke, lift = 0) {
+    const a = worldToScreen(x, y);
+    const b = worldToScreen(x + 1, y);
+    const c = worldToScreen(x + 1, y + 1);
+    const d = worldToScreen(x, y + 1);
+    [a, b, c, d].forEach((p) => { p.y -= lift; });
+
     ctx.beginPath();
-    ctx.moveTo(x, y - TILE_H / 2);
-    ctx.lineTo(x + TILE_W / 2, y);
-    ctx.lineTo(x, y + TILE_H / 2);
-    ctx.lineTo(x - TILE_W / 2, y);
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(c.x, c.y);
+    ctx.lineTo(d.x, d.y);
     ctx.closePath();
 
-    const shade = ctx.createLinearGradient(x - TILE_W / 2, y - TILE_H / 2, x + TILE_W / 2, y + TILE_H / 2);
+    const shade = ctx.createLinearGradient(a.x, a.y, c.x, c.y);
     shade.addColorStop(0, "rgba(255,255,255,.055)");
     shade.addColorStop(.5, "rgba(255,255,255,0)");
     shade.addColorStop(1, "rgba(0,0,0,.075)");
@@ -120,12 +127,11 @@
     ctx.fill();
     ctx.fillStyle = shade;
     ctx.fill();
-
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 0.45;
+    ctx.lineWidth = 0.5;
     ctx.lineJoin = "round";
-    ctx.lineCap = "round";
     ctx.stroke();
+    return { a, b, c, d };
   }
 
   function drawMap() {
@@ -136,24 +142,20 @@
         const tile = MAP[y][x];
         const p = worldToScreen(x + 0.5, y + 0.5);
         if (tile === "2") {
-          const h = 25;
-          drawDiamond(p.x, p.y - h, "#62594c", "rgba(190,174,148,.48)");
-          ctx.fillStyle = "#484137";
+          const h = CONFIG.pixelsPerUnit * 0.52;
+          const base = [worldToScreen(x, y), worldToScreen(x + 1, y), worldToScreen(x + 1, y + 1), worldToScreen(x, y + 1)];
+          const top = base.map((point) => ({ x: point.x, y: point.y - h }));
           ctx.beginPath();
-          ctx.moveTo(p.x - TILE_W / 2, p.y - h);
-          ctx.lineTo(p.x, p.y - TILE_H / 2 - h);
-          ctx.lineTo(p.x, p.y - TILE_H / 2);
-          ctx.lineTo(p.x - TILE_W / 2, p.y);
-          ctx.closePath(); ctx.fill();
-          ctx.fillStyle = "#575044";
+          ctx.moveTo(top[3].x, top[3].y); ctx.lineTo(top[2].x, top[2].y);
+          ctx.lineTo(base[2].x, base[2].y); ctx.lineTo(base[3].x, base[3].y);
+          ctx.closePath(); ctx.fillStyle = "#484137"; ctx.fill();
           ctx.beginPath();
-          ctx.moveTo(p.x + TILE_W / 2, p.y - h);
-          ctx.lineTo(p.x, p.y - TILE_H / 2 - h);
-          ctx.lineTo(p.x, p.y - TILE_H / 2);
-          ctx.lineTo(p.x + TILE_W / 2, p.y);
-          ctx.closePath(); ctx.fill();
+          ctx.moveTo(top[1].x, top[1].y); ctx.lineTo(top[2].x, top[2].y);
+          ctx.lineTo(base[2].x, base[2].y); ctx.lineTo(base[1].x, base[1].y);
+          ctx.closePath(); ctx.fillStyle = "#575044"; ctx.fill();
+          drawTileTop(x, y, "#62594c", "rgba(190,174,148,.48)", h);
         } else if (tile === "3" || tile === "4") {
-          drawDiamond(p.x, p.y, "#765438", "#bd9160");
+          drawTileTop(x, y, "#765438", "#bd9160");
           ctx.fillStyle = "#4a3020";
           ctx.fillRect(p.x - 14, p.y - 24, 28, 23);
           ctx.fillStyle = "#a8794b";
@@ -161,7 +163,7 @@
           ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
         } else {
           const floor = (x + y) % 2 ? "#797468" : "#7e796e";
-          drawDiamond(p.x, p.y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.22)");
+          drawTileTop(x, y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.22)");
           if (tile === "0") {
             ctx.fillStyle = "#d4b47a";
             ctx.fillRect(p.x - 8, p.y - 7, 16, 14);
@@ -227,14 +229,14 @@
   }
 
   function worldToScreen(x, y) {
-    let dx = x - state.camera.x, dy = y - state.camera.y;
-    if (state.viewRotation === 1) [dx, dy] = [-dy, dx];
-    else if (state.viewRotation === 2) [dx, dy] = [-dx, -dy];
-    else if (state.viewRotation === 3) [dx, dy] = [dy, -dx];
+    const dx = x - state.camera.x, dy = y - state.camera.y;
+    const cos = Math.cos(state.viewAngle), sin = Math.sin(state.viewAngle);
+    const rx = dx * cos - dy * sin;
+    const ry = dx * sin + dy * cos;
     const scale = CONFIG.pixelsPerUnit;
     return {
-      x: canvasWidth / 2 + (dx - dy) * scale * 0.5,
-      y: canvasHeight / 2 + (dx + dy) * scale * 0.25
+      x: canvasWidth / 2 + (rx - ry) * scale * 0.5,
+      y: canvasHeight / 2 + (rx + ry) * scale * 0.25
     };
   }
 
@@ -250,9 +252,9 @@
 
     if (dx !== 0 || dy !== 0) {
       const screenDx = dx, screenDy = dy;
-      if (state.viewRotation === 1) { dx = screenDy; dy = -screenDx; }
-      else if (state.viewRotation === 2) { dx = -screenDx; dy = -screenDy; }
-      else if (state.viewRotation === 3) { dx = -screenDy; dy = screenDx; }
+      const cos = Math.cos(state.viewAngle), sin = Math.sin(state.viewAngle);
+      dx = screenDx * cos + screenDy * sin;
+      dy = -screenDx * sin + screenDy * cos;
       const length = Math.hypot(dx, dy);
       const step = CONFIG.moveSpeed * deltaSeconds / length;
       const nextX = state.player.x + dx * step;
@@ -387,8 +389,8 @@
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
     keys.add(key);
     if (event.repeat) return;
-    if (key === "q") state.viewRotation = (state.viewRotation + 3) % 4;
-    if (key === "e") state.viewRotation = (state.viewRotation + 1) % 4;
+    if (key === "q") state.targetViewAngle -= Math.PI / 2;
+    if (key === "e") state.targetViewAngle += Math.PI / 2;
     if (key === "f" && ui.panel.hidden) openInteraction();
     if (key === "r") rotateSelectedShelf();
     if (key === "escape" && !ui.panel.hidden) closeInteraction();
@@ -421,6 +423,7 @@
   function frame(timestamp) {
     const deltaSeconds = Math.min((timestamp - lastFrame) / 1000 || 0, 0.05);
     lastFrame = timestamp;
+    state.viewAngle += (state.targetViewAngle - state.viewAngle) * Math.min(1, deltaSeconds * 7.5);
     updatePlayer(deltaSeconds);
     updateGameTime(deltaSeconds);
     drawMap();
