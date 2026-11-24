@@ -251,7 +251,7 @@
 
     if(playerSprite.complete&&playerSprite.naturalWidth>=750&&playerSprite.naturalHeight>=332){
       // Sheet order is intentionally non-sequential: run=left, idle=middle, start=right.
-      const sourceX=Math.abs(player.vx)>30?(player.moveStart>0?500:0):250;
+      const sourceX=Math.abs(player.vx)>30?(player.moveStart>0?500:250):0;
       const drawW=38,drawH=50;
       ctx.save();
       ctx.translate(Math.round(x+player.w/2),Math.round(y+player.h));
