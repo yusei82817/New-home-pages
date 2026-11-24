@@ -33,7 +33,7 @@
 
   function reset(){
     player={x:75,y:380,w:28,h:42,vx:0,vy:0,onGround:false,face:1,invuln:0};
-    camera=0;coins=0;elapsed=0;particles=[];state='ready';
+    camera=0;coins=0;elapsed=0;particles=[];state='ready';coinSpots.forEach(c=>c.taken=false);
     updateHud();draw();
   }
   function updateHud(){
