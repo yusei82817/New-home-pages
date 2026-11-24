@@ -165,18 +165,14 @@
         const top = base.map((point) => ({ x: point.x, y: point.y - h }));
         const centerDepth = cameraDepth(x + 0.5, y + 0.5);
         const edges = [
-          { a: 0, b: 1, color: "#575044" },
-          { a: 1, b: 2, color: "#575044" },
-          { a: 2, b: 3, color: "#484137" },
-          { a: 3, b: 0, color: "#484137" }
+          { a: 0, b: 1, mx: x + 0.5, my: y, color: "#575044" },
+          { a: 1, b: 2, mx: x + 1, my: y + 0.5, color: "#575044" },
+          { a: 2, b: 3, mx: x + 0.5, my: y + 1, color: "#484137" },
+          { a: 3, b: 0, mx: x, my: y + 0.5, color: "#484137" }
         ];
         for (const edge of edges) {
-          const midX = (base[edge.a].x + base[edge.b].x) / 2;
-          const midY = (base[edge.a].y + base[edge.b].y) / 2;
           // Only render the two camera-facing vertical faces.
-          const worldMidX = x + (edge.a === 1 || edge.a === 2 ? 1 : 0.5);
-          const worldMidY = y + (edge.a >= 2 ? 1 : 0.5);
-          if (cameraDepth(worldMidX, worldMidY) >= centerDepth - 0.0001) {
+          if (cameraDepth(edge.mx, edge.my) >= centerDepth - 0.0001) {
             ctx.beginPath();
             ctx.moveTo(top[edge.a].x, top[edge.a].y);
             ctx.lineTo(top[edge.b].x, top[edge.b].y);
