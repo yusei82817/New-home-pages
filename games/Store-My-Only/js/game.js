@@ -238,7 +238,7 @@
     const nextH = shelf.vertical ? 1 : 2;
     for (let y = nextY; y < nextY + nextH; y++) {
       for (let x = nextX; x < nextX + nextW; x++) {
-        if (tileAt(x, y) === "2") { setMessage("壁があるため回転できません。"); return; }
+        if (tileAt(x, y) !== "1") { setMessage("壁または店舗の外側のため回転できません。"); return; }
         const occupied = shelves.some((other, i) => i !== state.selectedShelf && x >= other.x && x < other.x + (other.vertical ? 1 : other.length) && y >= other.y && y < other.y + (other.vertical ? other.length : 1));
         if (occupied) { setMessage("ほかの棚と重なるため回転できません。"); return; }
       }
