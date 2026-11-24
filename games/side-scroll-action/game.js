@@ -11,23 +11,29 @@
   const overlayText = document.getElementById('overlay-text');
   const startButton = document.getElementById('start-button');
 
-  const worldWidth = 5200;
+  const worldWidth = 8500;
   const platforms = [
     {x:0,y:450,w:760,h:120},{x:850,y:450,w:430,h:120},{x:1370,y:410,w:310,h:160},
     {x:1770,y:450,w:530,h:120},{x:2400,y:390,w:300,h:180},{x:2800,y:450,w:500,h:120},
     {x:3390,y:410,w:350,h:160},{x:3830,y:450,w:480,h:120},{x:4400,y:400,w:300,h:170},
     {x:4790,y:450,w:410,h:120},
+    {x:5300,y:450,w:420,h:120},{x:5810,y:405,w:330,h:165},{x:6230,y:450,w:520,h:120},
+    {x:6850,y:390,w:330,h:180},{x:7270,y:450,w:520,h:120},{x:7890,y:420,w:610,h:150},
     {x:360,y:350,w:170,h:18},{x:980,y:340,w:150,h:18},{x:1490,y:300,w:140,h:18},
     {x:1940,y:345,w:150,h:18},{x:2500,y:280,w:140,h:18},{x:2940,y:340,w:150,h:18},
-    {x:3500,y:300,w:140,h:18},{x:3970,y:340,w:160,h:18},{x:4500,y:290,w:130,h:18}
+    {x:3500,y:300,w:140,h:18},{x:3970,y:340,w:160,h:18},{x:4500,y:290,w:130,h:18},
+    {x:5410,y:340,w:150,h:18},{x:5900,y:295,w:150,h:18},{x:6410,y:340,w:160,h:18},
+    {x:6950,y:275,w:150,h:18},{x:7410,y:335,w:160,h:18},{x:8010,y:315,w:150,h:18}
   ];
   const hazards = [
     {x:610,y:426,w:72,h:24},{x:1070,y:426,w:65,h:24},{x:1570,y:386,w:65,h:24},
     {x:2050,y:426,w:85,h:24},{x:2580,y:366,w:65,h:24},{x:3000,y:426,w:85,h:24},
-    {x:3590,y:386,w:65,h:24},{x:4020,y:426,w:85,h:24},{x:4540,y:376,w:65,h:24}
+    {x:3590,y:386,w:65,h:24},{x:4020,y:426,w:85,h:24},{x:4540,y:376,w:65,h:24},{x:5520,y:426,w:75,h:24},{x:6030,y:381,w:70,h:24},
+    {x:6500,y:426,w:95,h:24},{x:7050,y:361,w:75,h:24},{x:7560,y:426,w:90,h:24},{x:8150,y:396,w:80,h:24}
   ];
   const coinSpots = [];
-  for (let i=0;i<12;i++) coinSpots.push({x:220+i*405,y:[390,300,390,350,330,260,390,280,330,390,260,350][i],taken:false});
+  const coinHeights = [390,300,390,350,330,260,390,280,330,390,260,350,390,300,390,280,330,260,390,300];
+  for (let i=0;i<20;i++) coinSpots.push({x:220+i*410,y:coinHeights[i],taken:false});
   const keys = new Set();
   let player, camera, coins, elapsed, state, lastTime, particles;
 
@@ -37,7 +43,7 @@
     updateHud();draw();
   }
   function updateHud(){
-    coinLabel.innerHTML=coins+' <i>/ 12</i>';
+    coinLabel.innerHTML=coins+' <i>/ 20</i>';
     timerLabel.textContent=String(Math.floor(elapsed)).padStart(3,'0');
     statusLabel.textContent=state==='playing'?'PLAYING':state==='won'?'CLEAR':state==='dead'?'RETRY':'READY';
   }
@@ -88,7 +94,7 @@
       if(c.taken)continue;
       if(rects(player,{x:c.x-11,y:c.y-11,w:22,h:22})){c.taken=true;coins++;burst(c.x,c.y,'#ffdf83')}
     }
-    if(player.x>worldWidth-145){state='won';updateHud();showOverlay('STAGE <em>CLEAR!</em>','ゴール到達！ コイン '+coins+' / 12 枚を集めた。','PLAY AGAIN');return}
+    if(player.x>worldWidth-145){state='won';updateHud();showOverlay('STAGE <em>CLEAR!</em>','ゴール到達！ コイン '+coins+' / 20 枚を集めた。','PLAY AGAIN');return}
     const target=Math.max(0,Math.min(worldWidth-W,player.x-W*.36));
     camera+=(target-camera)*Math.min(1,dt*5.5);
     for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=300*dt;p.life-=dt}
