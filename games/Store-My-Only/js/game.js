@@ -72,17 +72,15 @@
     "2113334 4 4 2",
     "2222222222222"
   ];
-  const MAP = MAP_ROWS.map((row) => {
-    const cells = [];
-    for (let i = 0; i < row.length; i++) {
-      const code = row[i];
-      if (code === " ") cells.push("4");
-      else {
-        cells.push(code);
-      }
-    }
-    return cells;
-  });
+  const shelves = [
+    { x: 3, y: 6, length: 1, vertical: false },
+    { x: 4, y: 6, length: 1, vertical: false },
+    { x: 5, y: 6, length: 1, vertical: false },
+    { x: 6, y: 6, length: 2, vertical: false },
+    { x: 8, y: 6, length: 2, vertical: false },
+    { x: 10, y: 6, length: 2, vertical: false }
+  ];
+  const MAP = MAP_ROWS.map((row) => [...row].map((code) => code === " " || code === "3" || code === "4" ? "1" : code));
   const TILE_W = CONFIG.pixelsPerUnit;
   const TILE_H = TILE_W / 2;
   const MAP_W = MAP[0].length;
@@ -95,8 +93,12 @@
   }
 
   function isBlocked(x, y) {
-    const tile = tileAt(x, y);
-    return tile === "2" || tile === "3" || tile === "4";
+    if (tileAt(x, y) === "2") return true;
+    return shelves.some((shelf) => {
+      const w = shelf.vertical ? 1 : shelf.length;
+      const h = shelf.vertical ? shelf.length : 1;
+      return x >= shelf.x && x < shelf.x + w && y >= shelf.y && y < shelf.y + h;
+    });
   }
 
   function drawDiamond(x, y, fill, stroke) {
@@ -156,6 +158,42 @@
         }
       }
     }
+    drawShelves();
+  }
+
+  function drawShelves() {
+    shelves.forEach((shelf, index) => {
+      const w = shelf.vertical ? 1 : shelf.length;
+      const h = shelf.vertical ? shelf.length : 1;
+      const p = worldToScreen(shelf.x + w / 2, shelf.y + h / 2);
+      const width = (w + h) * TILE_W * 0.25;
+      const height = (w + h) * TILE_H * 0.25;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.fillStyle = state.selectedShelf === index ? "#a87843" : "#65452e";
+      ctx.strokeStyle = state.selectedShelf === index ? "#ffe2a0" : "#b88758";
+      ctx.lineWidth = state.selectedShelf === index ? 2 : 1;
+      ctx.beginPath();
+      ctx.roundRect(-width / 2, -height / 2 - 13, width, height + 13, 3);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#bd9160";
+      ctx.fillRect(-width / 2 + 3, -height / 2 - 10, Math.max(2, width - 6), 3);
+      ctx.restore();
+    });
+  }
+
+  function rotateSelectedShelf() {
+    const shelf = shelves[state.selectedShelf];
+    if (!shelf || shelf.length !== 2) { setMessage("回転できる長尺棚を選択してください。"); return; }
+    const w = shelf.vertical ? 2 : 1;
+    const h = shelf.vertical ? 1 : 2;
+    for (let y = shelf.y; y < shelf.y + h; y++) {
+      for (let x = shelf.x; x < shelf.x + w; x++) {
+        if (tileAt(x, y) === "2") { setMessage("壁があるため回転できません。"); return; }
+      }
+    }
+    shelf.vertical = !shelf.vertical;
+    setMessage("長尺棚を90度回転しました。");
   }
 
   function worldToScreen(x, y) {
@@ -316,7 +354,9 @@
     keys.add(key);
     if (event.repeat) return;
     if (key === "q") state.viewRotation = (state.viewRotation + 3) % 4;
-    if (key === "e" && ui.panel.hidden) openInteraction();
+    if (key === "e") state.viewRotation = (state.viewRotation + 1) % 4;
+    if (key === "f" && ui.panel.hidden) openInteraction();
+    if (key === "r") rotateSelectedShelf();
     if (key === "escape" && !ui.panel.hidden) closeInteraction();
     if (key === "f5") {
       event.preventDefault();
@@ -324,6 +364,19 @@
     }
   });
 
+  canvas.addEventListener("click", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = event.clientX - rect.left, my = event.clientY - rect.top;
+    let found = -1, best = 38;
+    shelves.forEach((shelf, index) => {
+      const w = shelf.vertical ? 1 : shelf.length, h = shelf.vertical ? shelf.length : 1;
+      const p = worldToScreen(shelf.x + w / 2, shelf.y + h / 2);
+      const d = Math.hypot(mx - p.x, my - p.y);
+      if (d < best) { best = d; found = index; }
+    });
+    state.selectedShelf = found;
+    if (found >= 0) setMessage("棚を選択中。長尺棚はRキーで90度回転。");
+  });
   window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
   window.addEventListener("blur", () => keys.clear());
   ui.shopToggle.addEventListener("click", toggleShop);
