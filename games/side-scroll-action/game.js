@@ -99,60 +99,159 @@
     ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();
   }
   function drawBackground(){
-    const sky=ctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#83cbdc');sky.addColorStop(1,'#d4e8c8');ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#ffe8a6';ctx.beginPath();ctx.arc(760-camera*.08,105,43,0,Math.PI*2);ctx.fill();
+    const sky=ctx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,'#547f9b');sky.addColorStop(.48,'#9bc9c1');sky.addColorStop(1,'#e5d9ad');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+    // Distant sun and its soft atmospheric halo.
+    const sunX=760-camera*.055,sunY=112;
+    let glow=ctx.createRadialGradient(sunX,sunY,8,sunX,sunY,145);
+    glow.addColorStop(0,'#fff4c7aa');glow.addColorStop(.35,'#ffe8a044');glow.addColorStop(1,'#ffe8a000');
+    ctx.fillStyle=glow;ctx.fillRect(sunX-150,sunY-150,300,300);
+    ctx.fillStyle='#fff0c4';ctx.beginPath();ctx.arc(sunX,sunY,39,0,Math.PI*2);ctx.fill();
+    // Faraway mesas and mountain silhouettes.
     for(let layer=0;layer<3;layer++){
-      const speed=[.12,.23,.4][layer],base=[330,370,420][layer],color=['#a5d3c0','#78b69e','#548f7e'][layer];
-      ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(0,H);
-      for(let x=-100;x<=W+150;x+=150){const wx=x+(camera*speed%300);ctx.lineTo(x,base+Math.sin((x+camera*speed)*.006+layer)*28);ctx.lineTo(x+75,base-55-layer*12);ctx.lineTo(x+150,base+Math.sin((x+150+camera*speed)*.006+layer)*28)}
+      const speed=[.075,.15,.28][layer],base=[310,360,410][layer];
+      const palette=['#9bb9ae','#739f8e','#557f73'];
+      ctx.fillStyle=palette[layer];ctx.beginPath();ctx.moveTo(0,H);
+      for(let x=-160;x<W+180;x+=180){
+        const wx=x-(camera*speed%360),peak=base-70-(layer*7)+Math.sin((x+camera*speed)*.004)*22;
+        ctx.lineTo(wx,base);ctx.lineTo(wx+75,peak);ctx.lineTo(wx+180,base+Math.sin((x+camera*speed)*.006)*17);
+      }
       ctx.lineTo(W,H);ctx.closePath();ctx.fill();
     }
-    ctx.fillStyle='#ffffff55';
-    for(let i=0;i<7;i++){const x=((i*190-camera*.18)%(W+150)+W+150)%(W+150)-60;const y=75+(i%3)*55;ctx.beginPath();ctx.ellipse(x,y,32,8,0,0,Math.PI*2);ctx.ellipse(x+22,y-7,22,10,0,0,Math.PI*2);ctx.fill()}
+    // Tiny distant architecture gives the landscape scale.
+    for(let i=0;i<8;i++){
+      const x=((i*245-camera*.19)%(W+220)+W+220)%(W+220)-90;
+      const y=305+(i%3)*21;
+      ctx.fillStyle='#557c78aa';ctx.fillRect(x,y-35,30,35);
+      ctx.fillStyle='#d6d4b0aa';ctx.fillRect(x+5,y-28,20,28);
+      ctx.fillStyle='#557c78aa';ctx.beginPath();ctx.moveTo(x-5,y-35);ctx.lineTo(x+15,y-49);ctx.lineTo(x+35,y-35);ctx.fill();
+    }
+    // Soft drifting cloud banks.
+    for(let i=0;i<7;i++){
+      const x=((i*190-camera*.12)%(W+180)+W+180)%(W+180)-70;
+      const y=70+(i%3)*52;
+      ctx.fillStyle='#f4fff0a0';ctx.beginPath();
+      ctx.ellipse(x,y,34,9,0,0,Math.PI*2);ctx.ellipse(x+23,y-7,24,12,0,0,Math.PI*2);ctx.ellipse(x+42,y,25,8,0,0,Math.PI*2);ctx.fill();
+    }
+    // Distant tree silhouettes.
+    for(let i=0;i<22;i++){
+      const x=((i*83-camera*.34)%(W+100)+W+100)%(W+100)-30;
+      const y=390+(i%4)*9,s=0.55+(i%3)*.12;
+      ctx.fillStyle='#426f65aa';ctx.fillRect(x-2,y-28*s,4,30*s);
+      ctx.beginPath();ctx.arc(x,y-33*s,13*s,0,Math.PI*2);ctx.fill();
+    }
   }
   function drawWorld(){
+    // Platform shadows, stone faces, grass caps and small vegetation.
     for(const p of platforms){
-      const x=p.x-camera;if(x+p.w<0||x>W)continue;
-      ctx.fillStyle='#315b4c';ctx.fillRect(x,p.y,p.w,p.h);
-      ctx.fillStyle='#5d9a67';ctx.fillRect(x,p.y,p.w,9);
-      ctx.fillStyle='#83c477';ctx.fillRect(x,p.y,p.w,4);
-      ctx.fillStyle='#ffffff12';
-      for(let n=18;n<p.w;n+=38)ctx.fillRect(x+n,p.y+24,3,3);
+      const x=p.x-camera;if(x+p.w< -20||x>W+20)continue;
+      ctx.fillStyle='#294b45aa';ctx.fillRect(x+4,p.y+7,p.w,p.h);
+      ctx.fillStyle='#456b58';ctx.fillRect(x,p.y,p.w,p.h);
+      ctx.fillStyle='#37604f';ctx.fillRect(x,p.y+12,p.w,p.h-12);
+      ctx.fillStyle='#7ebc79';ctx.fillRect(x,p.y,p.w,8);
+      ctx.fillStyle='#b5d98b';ctx.fillRect(x,p.y,p.w,3);
+      ctx.fillStyle='#d6e5a055';ctx.fillRect(x+3,p.y+8,p.w-6,2);
+      // Stone seams and tiny highlights.
+      for(let n=24;n<p.w;n+=54){
+        ctx.fillStyle='#24483f88';ctx.fillRect(x+n,p.y+25,2,15);
+        ctx.fillStyle='#a2c68a55';ctx.fillRect(x+n+5,p.y+20,12,2);
+      }
+      // Tufts of grass along the ledge.
+      for(let n=14;n<p.w;n+=47){
+        ctx.strokeStyle='#c0d98a';ctx.lineWidth=2;ctx.beginPath();
+        ctx.moveTo(x+n,p.y+2);ctx.lineTo(x+n-4,p.y-5-(n%3));
+        ctx.moveTo(x+n,p.y+2);ctx.lineTo(x+n+4,p.y-6);ctx.stroke();
+      }
     }
+    // Small foreground plants near the ground.
+    for(let i=0;i<38;i++){
+      const wx=i*151+35,x=wx-camera*.98;
+      if(x< -30||x>W+30)continue;
+      const ground=platforms.find(p=>wx>=p.x&&wx<=p.x+p.w&&Math.abs(p.y-450)<5);
+      if(!ground)continue;
+      ctx.fillStyle=i%2?'#315f4c':'#477b55';
+      ctx.beginPath();ctx.ellipse(x,ground.y-3,5,12,-.45,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(x+7,ground.y-2,4,9,.55,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#e9d58a';ctx.fillRect(x+1,ground.y-12,3,3);
+    }
+    // Hazards with a dark contact shadow and bright bevel.
     for(const h of hazards){
       const x=h.x-camera;if(x+h.w<0||x>W)continue;
-      ctx.fillStyle='#df766b';ctx.beginPath();
+      ctx.fillStyle='#713f48';ctx.fillRect(x,h.y+h.h-2,h.w,5);
       const count=Math.max(2,Math.floor(h.w/18)),step=h.w/count;
-      for(let i=0;i<count;i++){ctx.moveTo(x+i*step,h.y+h.h);ctx.lineTo(x+i*step+step/2,h.y);ctx.lineTo(x+(i+1)*step,h.y+h.h)}
-      ctx.fill();
-      ctx.fillStyle='#a94e50';ctx.fillRect(x,h.y+h.h-3,h.w,3);
+      for(let i=0;i<count;i++){
+        ctx.fillStyle='#b95758';ctx.beginPath();ctx.moveTo(x+i*step,h.y+h.h);ctx.lineTo(x+i*step+step/2,h.y);ctx.lineTo(x+(i+1)*step,h.y+h.h);ctx.closePath();ctx.fill();
+        ctx.fillStyle='#ffb18a';ctx.beginPath();ctx.moveTo(x+i*step+step/2,h.y+2);ctx.lineTo(x+i*step+step/2-4,h.y+h.h-5);ctx.lineTo(x+i*step+step/2+3,h.y+h.h-5);ctx.closePath();ctx.fill();
+      }
     }
+    // Glowing coins with a subtle halo and metallic rim.
     for(const c of coinSpots){
-      if(c.taken)continue;const x=c.x-camera;if(x<-20||x>W+20)continue;
-      ctx.fillStyle='#f5c85f';ctx.beginPath();ctx.ellipse(x,c.y,8,11,0,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='#fff0b0';ctx.lineWidth=2;ctx.stroke();
-      ctx.fillStyle='#fff2bb';ctx.fillRect(x-1,c.y-6,2,12);
+      if(c.taken)continue;const x=c.x-camera;if(x< -30||x>W+30)continue;
+      const halo=ctx.createRadialGradient(x,c.y,2,x,c.y,25);
+      halo.addColorStop(0,'#fff0a966');halo.addColorStop(1,'#fff0a900');
+      ctx.fillStyle=halo;ctx.fillRect(x-25,c.y-25,50,50);
+      ctx.fillStyle='#b77b36';ctx.beginPath();ctx.ellipse(x,c.y+1,9,13,0,0,Math.PI*2);ctx.fill();
+      const gold=ctx.createLinearGradient(x-8,c.y,x+8,c.y);
+      gold.addColorStop(0,'#e7a943');gold.addColorStop(.45,'#fff0a2');gold.addColorStop(1,'#d78a2e');
+      ctx.fillStyle=gold;ctx.beginPath();ctx.ellipse(x,c.y,7,11,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='#fff5c5';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#fff9d9';ctx.fillRect(x-1,c.y-6,2,12);
     }
+    // Finish flag and a little stone plinth.
     const flagX=worldWidth-110-camera;
-    ctx.fillStyle='#f1f4e9';ctx.fillRect(flagX,300,5,150);
-    ctx.fillStyle='#f0a36f';ctx.beginPath();ctx.moveTo(flagX+5,302);ctx.lineTo(flagX+70,322);ctx.lineTo(flagX+5,344);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#315b4c';ctx.fillRect(flagX-12,447,30,4);
+    ctx.fillStyle='#263e43aa';ctx.fillRect(flagX+3,303,7,150);
+    ctx.fillStyle='#e8ead4';ctx.fillRect(flagX,300,5,150);
+    ctx.fillStyle='#e78d68';ctx.beginPath();ctx.moveTo(flagX+5,302);ctx.lineTo(flagX+72,322);ctx.lineTo(flagX+5,344);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#ffe0a1';ctx.fillRect(flagX+5,302,5,39);
+    ctx.fillStyle='#426653';ctx.fillRect(flagX-15,447,35,6);
   }
   function drawPlayer(){
     if(player.invuln>0 && Math.floor(performance.now()/80)%2===0)return;
     const x=player.x-camera,y=player.y;
-    ctx.save();ctx.translate(x+player.w/2,y+player.h/2);ctx.scale(player.face,1);
-    rounded(-11,-16,22,27,7,'#f2a56f');
-    rounded(-10,-22,20,15,6,'#24364d');
-    ctx.fillStyle='#fff';ctx.fillRect(2,-17,4,4);
-    rounded(-12,8,10,10,3,'#26394e');rounded(2,8,10,10,3,'#26394e');
-    ctx.fillStyle='#f7d7aa';ctx.fillRect(-5,-3,11,4);
+    // Soft, offset contact shadow anchors the pixel-art hero to the world.
+    ctx.save();ctx.globalAlpha=.28;ctx.fillStyle='#183b3d';
+    ctx.beginPath();ctx.ellipse(x+player.w/2,y+player.h+3,18,5,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    ctx.save();ctx.translate(Math.round(x+player.w/2),Math.round(y+player.h/2));ctx.scale(player.face,1);
+    // Backpack silhouette.
+    rounded(-13,-7,7,17,2,'#4b6f62');
+    // Tunic and boots, drawn with crisp layered highlights.
+    rounded(-10,-12,20,25,4,'#e9a16f');
+    ctx.fillStyle='#ffd2a0';ctx.fillRect(-8,-9,16,3);
+    ctx.fillStyle='#bd765b';ctx.fillRect(-9,7,18,4);
+    // Hood / hair.
+    rounded(-11,-22,22,15,5,'#283b50');
+    ctx.fillStyle='#40566a';ctx.fillRect(-8,-21,14,3);
+    ctx.fillStyle='#f3d4ad';ctx.fillRect(-5,-12,12,7);
+    ctx.fillStyle='#25384a';ctx.fillRect(3,-10,3,3);
+    // Scarf catches the light.
+    ctx.fillStyle='#c96e62';ctx.beginPath();ctx.moveTo(-5,-4);ctx.lineTo(9,-2);ctx.lineTo(14,4);ctx.lineTo(5,2);ctx.closePath();ctx.fill();
+    // Arms.
+    rounded(-14,-7,6,14,2,'#e9a16f');rounded(8,-7,6,14,2,'#e9a16f');
+    // Boots.
+    rounded(-11,10,9,9,2,'#26394d');rounded(2,10,10,9,2,'#26394d');
+    ctx.fillStyle='#9bb4a2';ctx.fillRect(-10,16,8,2);ctx.fillRect(3,16,8,2);
     ctx.restore();
   }
   function draw(){
     drawBackground();ctx.save();drawWorld();drawPlayer();
     for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/.55);ctx.fillStyle=p.color;ctx.fillRect(p.x-camera,p.y,4,4)}
     ctx.globalAlpha=1;ctx.restore();
+    // Warm directional light, subtle edge vignette and foreground depth.
+    const light=ctx.createRadialGradient(W*.72,H*.2,25,W*.72,H*.2,520);
+    light.addColorStop(0,'#fff2c02b');light.addColorStop(1,'#fff2c000');
+    ctx.fillStyle=light;ctx.fillRect(0,0,W,H);
+    const vignette=ctx.createRadialGradient(W*.5,H*.48,170,W*.5,H*.48,650);
+    vignette.addColorStop(0,'#142b3000');vignette.addColorStop(1,'#142b3044');
+    ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
+    // Blurred-looking foreground leaves create a layered diorama effect.
+    ctx.globalAlpha=.72;
+    for(let i=0;i<13;i++){
+      const x=((i*97-camera*1.12)%(W+120)+W+120)%(W+120)-50;
+      ctx.fillStyle=i%2?'#244f48':'#315f50';
+      ctx.beginPath();ctx.ellipse(x,H+10,13,34,-.35,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
     if(state==='ready'){ctx.fillStyle='#18324b';ctx.font='700 14px sans-serif';ctx.fillText('PRESS START TO BEGIN',W/2-83, H-28)}
   }
   function loop(time){
