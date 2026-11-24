@@ -134,42 +134,75 @@
     return { a, b, c, d };
   }
 
+  function cameraDepth(x, y) {
+    const dx = x - state.camera.x, dy = y - state.camera.y;
+    const cos = Math.cos(state.viewAngle), sin = Math.sin(state.viewAngle);
+    const rx = dx * cos - dy * sin;
+    const ry = dx * sin + dy * cos;
+    return rx + ry;
+  }
+
   function drawMap() {
     ctx.fillStyle = "#24231f";
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Draw back-to-front using the current camera angle. Without depth sorting,
+    // tiles and wall faces overwrite one another in the wrong order mid-rotation.
+    const tiles = [];
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
-        const tile = MAP[y][x];
-        const p = worldToScreen(x + 0.5, y + 0.5);
-        if (tile === "2") {
-          const h = CONFIG.pixelsPerUnit * 0.52;
-          const base = [worldToScreen(x, y), worldToScreen(x + 1, y), worldToScreen(x + 1, y + 1), worldToScreen(x, y + 1)];
-          const top = base.map((point) => ({ x: point.x, y: point.y - h }));
-          ctx.beginPath();
-          ctx.moveTo(top[3].x, top[3].y); ctx.lineTo(top[2].x, top[2].y);
-          ctx.lineTo(base[2].x, base[2].y); ctx.lineTo(base[3].x, base[3].y);
-          ctx.closePath(); ctx.fillStyle = "#484137"; ctx.fill();
-          ctx.beginPath();
-          ctx.moveTo(top[1].x, top[1].y); ctx.lineTo(top[2].x, top[2].y);
-          ctx.lineTo(base[2].x, base[2].y); ctx.lineTo(base[1].x, base[1].y);
-          ctx.closePath(); ctx.fillStyle = "#575044"; ctx.fill();
-          drawTileTop(x, y, "#62594c", "rgba(190,174,148,.48)", h);
-        } else if (tile === "3" || tile === "4") {
-          drawTileTop(x, y, "#765438", "#bd9160");
-          ctx.fillStyle = "#4a3020";
-          ctx.fillRect(p.x - 14, p.y - 24, 28, 23);
-          ctx.fillStyle = "#a8794b";
-          ctx.fillRect(p.x - 12, p.y - 22, 24, 4);
-          ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
-        } else {
-          const floor = (x + y) % 2 ? "#797468" : "#7e796e";
-          drawTileTop(x, y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.22)");
-          if (tile === "0") {
-            ctx.fillStyle = "#d4b47a";
-            ctx.fillRect(p.x - 8, p.y - 7, 16, 14);
-            ctx.fillStyle = "#493a2a";
-            ctx.fillRect(p.x + 4, p.y - 1, 2, 2);
+        tiles.push({ x, y, tile: MAP[y][x], depth: cameraDepth(x + 0.5, y + 0.5) });
+      }
+    }
+    tiles.sort((a, b) => a.depth - b.depth || a.y - b.y || a.x - b.x);
+
+    for (const item of tiles) {
+      const { x, y, tile } = item;
+      const p = worldToScreen(x + 0.5, y + 0.5);
+      if (tile === "2") {
+        const h = CONFIG.pixelsPerUnit * 0.52;
+        const base = [worldToScreen(x, y), worldToScreen(x + 1, y), worldToScreen(x + 1, y + 1), worldToScreen(x, y + 1)];
+        const top = base.map((point) => ({ x: point.x, y: point.y - h }));
+        const centerDepth = cameraDepth(x + 0.5, y + 0.5);
+        const edges = [
+          { a: 0, b: 1, color: "#575044" },
+          { a: 1, b: 2, color: "#575044" },
+          { a: 2, b: 3, color: "#484137" },
+          { a: 3, b: 0, color: "#484137" }
+        ];
+        for (const edge of edges) {
+          const midX = (base[edge.a].x + base[edge.b].x) / 2;
+          const midY = (base[edge.a].y + base[edge.b].y) / 2;
+          // Only render the two camera-facing vertical faces.
+          const worldMidX = x + (edge.a === 1 || edge.a === 2 ? 1 : 0.5);
+          const worldMidY = y + (edge.a >= 2 ? 1 : 0.5);
+          if (cameraDepth(worldMidX, worldMidY) >= centerDepth - 0.0001) {
+            ctx.beginPath();
+            ctx.moveTo(top[edge.a].x, top[edge.a].y);
+            ctx.lineTo(top[edge.b].x, top[edge.b].y);
+            ctx.lineTo(base[edge.b].x, base[edge.b].y);
+            ctx.lineTo(base[edge.a].x, base[edge.a].y);
+            ctx.closePath();
+            ctx.fillStyle = edge.color;
+            ctx.fill();
           }
+        }
+        drawTileTop(x, y, "#62594c", "rgba(190,174,148,.48)", h);
+      } else if (tile === "3" || tile === "4") {
+        drawTileTop(x, y, "#765438", "#bd9160");
+        ctx.fillStyle = "#4a3020";
+        ctx.fillRect(p.x - 14, p.y - 24, 28, 23);
+        ctx.fillStyle = "#a8794b";
+        ctx.fillRect(p.x - 12, p.y - 22, 24, 4);
+        ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
+      } else {
+        const floor = (x + y) % 2 ? "#797468" : "#7e796e";
+        drawTileTop(x, y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.22)");
+        if (tile === "0") {
+          ctx.fillStyle = "#d4b47a";
+          ctx.fillRect(p.x - 8, p.y - 7, 16, 14);
+          ctx.fillStyle = "#493a2a";
+          ctx.fillRect(p.x + 4, p.y - 1, 2, 2);
         }
       }
     }
@@ -423,7 +456,9 @@
   function frame(timestamp) {
     const deltaSeconds = Math.min((timestamp - lastFrame) / 1000 || 0, 0.05);
     lastFrame = timestamp;
-    state.viewAngle += (state.targetViewAngle - state.viewAngle) * Math.min(1, deltaSeconds * 7.5);
+    const rotationDelta = state.targetViewAngle - state.viewAngle;
+    state.viewAngle += rotationDelta * (1 - Math.exp(-deltaSeconds * 10));
+    if (Math.abs(rotationDelta) < 0.0005) state.viewAngle = state.targetViewAngle;
     updatePlayer(deltaSeconds);
     updateGameTime(deltaSeconds);
     drawMap();
