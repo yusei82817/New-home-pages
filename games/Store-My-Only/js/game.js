@@ -40,6 +40,7 @@
     minutes: CONFIG.startHour * 60,
     isShopOpen: false,
     scene: "blacksmith",
+    viewRotation: 0,
     paused: false
   };
 
@@ -158,10 +159,14 @@
   }
 
   function worldToScreen(x, y) {
+    let dx = x - state.camera.x, dy = y - state.camera.y;
+    if (state.viewRotation === 1) [dx, dy] = [-dy, dx];
+    else if (state.viewRotation === 2) [dx, dy] = [-dx, -dy];
+    else if (state.viewRotation === 3) [dx, dy] = [dy, -dx];
     const scale = CONFIG.pixelsPerUnit;
     return {
-      x: canvasWidth / 2 + (x - state.camera.x - y + state.camera.y) * scale * 0.5,
-      y: canvasHeight / 2 + (x - state.camera.x + y - state.camera.y) * scale * 0.25
+      x: canvasWidth / 2 + (dx - dy) * scale * 0.5,
+      y: canvasHeight / 2 + (dx + dy) * scale * 0.25
     };
   }
 
@@ -310,6 +315,7 @@
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
     keys.add(key);
     if (event.repeat) return;
+    if (key === "q") state.viewRotation = (state.viewRotation + 3) % 4;
     if (key === "e" && ui.panel.hidden) openInteraction();
     if (key === "escape" && !ui.panel.hidden) closeInteraction();
     if (key === "f5") {
