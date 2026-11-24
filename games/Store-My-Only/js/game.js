@@ -78,7 +78,6 @@
       if (code === " ") cells.push("4");
       else {
         cells.push(code);
-        if (code === "4" && row[i + 1] === " ") i++;
       }
     }
     return cells;
