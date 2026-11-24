@@ -155,89 +155,96 @@
     ctx.fillStyle = backdrop;
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Draw back-to-front using the current camera angle. Without depth sorting,
-    // tiles and wall faces overwrite one another in the wrong order mid-rotation.
-    const tiles = [];
+    const floors = [];
+    const walls = [];
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
-        if (MAP[y][x] !== null) tiles.push({ x, y, tile: MAP[y][x], depth: cameraDepth(x + 0.5, y + 0.5) });
-      }
-    }
-    tiles.sort((a, b) => a.depth - b.depth || a.y - b.y || a.x - b.x);
-
-    for (const item of tiles) {
-      const { x, y, tile } = item;
-      const p = worldToScreen(x + 0.5, y + 0.5);
-      if (tile === "2") {
-        const h = CONFIG.pixelsPerUnit * 0.52;
-        const base = [worldToScreen(x, y), worldToScreen(x + 1, y), worldToScreen(x + 1, y + 1), worldToScreen(x, y + 1)];
-        const top = base.map((point) => ({ x: point.x, y: point.y - h }));
-        const centerDepth = cameraDepth(x + 0.5, y + 0.5);
-        const edges = [
-          { a: 0, b: 1, mx: x + 0.5, my: y, color: "#575044" },
-          { a: 1, b: 2, mx: x + 1, my: y + 0.5, color: "#575044" },
-          { a: 2, b: 3, mx: x + 0.5, my: y + 1, color: "#484137" },
-          { a: 3, b: 0, mx: x, my: y + 0.5, color: "#484137" }
-        ];
-        for (const edge of edges) {
-          // Only render the two camera-facing vertical faces.
-          if (cameraDepth(edge.mx, edge.my) >= centerDepth - 0.0001) {
-            ctx.beginPath();
-            ctx.moveTo(top[edge.a].x, top[edge.a].y);
-            ctx.lineTo(top[edge.b].x, top[edge.b].y);
-            ctx.lineTo(base[edge.b].x, base[edge.b].y);
-            ctx.lineTo(base[edge.a].x, base[edge.a].y);
-            ctx.closePath();
-            ctx.fillStyle = edge.color;
-            ctx.fill();
+        const tile = MAP[y][x];
+        if (tile === "1" || tile === "0" || tile === "3" || tile === "4") {
+          floors.push({x,y,tile,depth:cameraDepth(x+.5,y+.5)});
+        }
+        if (tile === "2") {
+          const edges = [
+            {a:[x,y],b:[x+1,y],nx:0,ny:-1,color:"#655b4c"},
+            {a:[x+1,y],b:[x+1,y+1],nx:1,ny:0,color:"#51483c"},
+            {a:[x+1,y+1],b:[x,y+1],nx:0,ny:1,color:"#494136"},
+            {a:[x,y+1],b:[x,y],nx:-1,ny:0,color:"#5a5043"}
+          ];
+          for (const edge of edges) {
+            if (tileAt(x+edge.nx+.5,y+edge.ny+.5) !== null) continue;
+            const mx=(edge.a[0]+edge.b[0])/2, my=(edge.a[1]+edge.b[1])/2;
+            const centerDepth=cameraDepth(x+.5,y+.5);
+            if (cameraDepth(mx,my) < centerDepth) continue;
+            walls.push({...edge,x,y,depth:cameraDepth(mx,my)});
           }
         }
-        drawTileTop(x, y, "#62594c", "rgba(190,174,148,.48)", h);
-        ctx.beginPath();
-        ctx.moveTo(top[0].x, top[0].y + 1);
-        ctx.lineTo(top[1].x, top[1].y + 1);
-        ctx.lineTo(top[2].x, top[2].y + 1);
-        ctx.strokeStyle = "rgba(245,220,174,.22)";
-        ctx.lineWidth = 1.1;
-        ctx.stroke();
-      } else if (tile === "3" || tile === "4") {
-        drawTileTop(x, y, "#765438", "#bd9160");
-        ctx.fillStyle = "#4a3020";
-        ctx.fillRect(p.x - 14, p.y - 24, 28, 23);
-        ctx.fillStyle = "#a8794b";
-        ctx.fillRect(p.x - 12, p.y - 22, 24, 4);
-        ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
+      }
+    }
+
+    floors.sort((a,b)=>a.depth-b.depth || a.y-b.y || a.x-b.x);
+    for (const item of floors) {
+      const {x,y,tile}=item;
+      const p=worldToScreen(x+.5,y+.5);
+      if (tile==="3" || tile==="4") {
+        drawTileTop(x,y,"#765438","#bd9160");
+        ctx.fillStyle="#4a3020";
+        ctx.fillRect(p.x-14,p.y-24,28,23);
+        ctx.fillStyle="#a8794b";
+        ctx.fillRect(p.x-12,p.y-22,24,4);
+        ctx.fillRect(p.x-12,p.y-10,24,3);
       } else {
-        const floor = (x + y) % 2 ? "#797468" : "#7e796e";
-        drawTileTop(x, y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.28)");
-        if (tile !== "0") {
-          const inset = 0.12;
-          const p1 = worldToScreen(x + inset, y + inset);
-          const p2 = worldToScreen(x + 1 - inset, y + inset);
-          const p3 = worldToScreen(x + 1 - inset, y + 1 - inset);
-          const p4 = worldToScreen(x + inset, y + 1 - inset);
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
-          ctx.lineTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.closePath();
-          ctx.strokeStyle = "rgba(35,31,25,.10)";
-          ctx.lineWidth = .65;
-          ctx.stroke();
+        const floor=(x+y)%2?"#797468":"#7e796e";
+        drawTileTop(x,y,tile==="0"?"#9b805b":floor,"rgba(205,194,173,.28)");
+        if(tile!=="0") {
+          const inset=.12;
+          const pts=[
+            worldToScreen(x+inset,y+inset),
+            worldToScreen(x+1-inset,y+inset),
+            worldToScreen(x+1-inset,y+1-inset),
+            worldToScreen(x+inset,y+1-inset)
+          ];
+          ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);
+          pts.slice(1).forEach(q=>ctx.lineTo(q.x,q.y));ctx.closePath();
+          ctx.strokeStyle="rgba(35,31,25,.10)";ctx.lineWidth=.65;ctx.stroke();
         }
-        if (tile === "0") {
-          ctx.fillStyle = "#d4b47a";
-          ctx.fillRect(p.x - 8, p.y - 7, 16, 14);
-          ctx.fillStyle = "#493a2a";
-          ctx.fillRect(p.x + 4, p.y - 1, 2, 2);
+        if(tile==="0") {
+          ctx.fillStyle="#d4b47a";ctx.fillRect(p.x-8,p.y-7,16,14);
+          ctx.fillStyle="#493a2a";ctx.fillRect(p.x+4,p.y-1,2,2);
         }
       }
     }
+
+    // Walls are continuous vertical planes along the shop perimeter, not stacked cubes.
+    walls.sort((a,b)=>a.depth-b.depth);
+    const wallHeight=CONFIG.pixelsPerUnit*1.65;
+    for(const wall of walls) {
+      const a=worldToScreen(wall.a[0],wall.a[1]);
+      const b=worldToScreen(wall.b[0],wall.b[1]);
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y-wallHeight);
+      ctx.lineTo(b.x,b.y-wallHeight);
+      ctx.lineTo(b.x,b.y);
+      ctx.lineTo(a.x,a.y);
+      ctx.closePath();
+      ctx.fillStyle=wall.color;
+      ctx.fill();
+      ctx.strokeStyle="rgba(224,202,164,.24)";
+      ctx.lineWidth=.8;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(a.x,a.y-wallHeight);
+      ctx.lineTo(b.x,b.y-wallHeight);
+      ctx.strokeStyle="rgba(255,229,184,.48)";
+      ctx.lineWidth=1.4;
+      ctx.stroke();
+    }
+
     drawShelves();
-    const light = ctx.createRadialGradient(canvasWidth * .52, canvasHeight * .48, 12, canvasWidth * .52, canvasHeight * .48, Math.max(canvasWidth, canvasHeight) * .58);
-    light.addColorStop(0, "rgba(255,205,125,.075)");
-    light.addColorStop(.55, "rgba(255,178,92,.025)");
-    light.addColorStop(1, "rgba(0,0,0,.28)");
-    ctx.fillStyle = light;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    const light=ctx.createRadialGradient(canvasWidth*.52,canvasHeight*.48,12,canvasWidth*.52,canvasHeight*.48,Math.max(canvasWidth,canvasHeight)*.58);
+    light.addColorStop(0,"rgba(255,205,125,.075)");
+    light.addColorStop(.55,"rgba(255,178,92,.025)");
+    light.addColorStop(1,"rgba(0,0,0,.28)");
+    ctx.fillStyle=light;ctx.fillRect(0,0,canvasWidth,canvasHeight);
   }
 
   function drawShelves() {
@@ -260,10 +267,23 @@
       ctx.fillStyle = "#080604";
       ctx.fill();
       ctx.restore();
-      ctx.beginPath(); ctx.moveTo(d.x,d.y-lift); ctx.lineTo(c.x,c.y-lift); ctx.lineTo(c.x,c.y); ctx.lineTo(d.x,d.y); ctx.closePath();
-      ctx.fillStyle="#4a3020"; ctx.fill(); ctx.strokeStyle="#b88758"; ctx.lineWidth=.8; ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(b.x,b.y-lift); ctx.lineTo(c.x,c.y-lift); ctx.lineTo(c.x,c.y); ctx.lineTo(b.x,b.y); ctx.closePath();
-      ctx.fillStyle="#5a3b27"; ctx.fill(); ctx.stroke();
+      // Draw all four vertical shelf sides before the tabletop.
+      const sideFaces = [
+        {points:[a,b], color:"#65452d"},
+        {points:[b,c], color:"#5a3b27"},
+        {points:[c,d], color:"#493020"},
+        {points:[d,a], color:"#765237"}
+      ];
+      for (const face of sideFaces) {
+        ctx.beginPath();
+        ctx.moveTo(face.points[0].x,face.points[0].y-lift);
+        ctx.lineTo(face.points[1].x,face.points[1].y-lift);
+        ctx.lineTo(face.points[1].x,face.points[1].y);
+        ctx.lineTo(face.points[0].x,face.points[0].y);
+        ctx.closePath();
+        ctx.fillStyle=face.color;ctx.fill();
+        ctx.strokeStyle="#b88758";ctx.lineWidth=.8;ctx.stroke();
+      }
       // Fill the entire tabletop after its sides, then outline it.
       ctx.beginPath(); ctx.moveTo(top[0].x,top[0].y); top.slice(1).forEach(p=>ctx.lineTo(p.x,p.y)); ctx.closePath();
       ctx.fillStyle=selected?"#a87843":"#765035"; ctx.fill();
