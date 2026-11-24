@@ -41,6 +41,7 @@
     isShopOpen: false,
     scene: "blacksmith",
     viewRotation: 0,
+    selectedShelf: -1,
     paused: false
   };
 
@@ -111,7 +112,8 @@
     ctx.fillStyle = fill;
     ctx.fill();
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.6;
+    ctx.lineJoin = "round";
     ctx.stroke();
   }
 
@@ -148,7 +150,7 @@
           ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
         } else {
           const floor = (x + y) % 2 ? "#777064" : "#81796b";
-          drawDiamond(p.x, p.y, tile === "0" ? "#9b805b" : floor, "#a59a85");
+          drawDiamond(p.x, p.y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.22)");
           if (tile === "0") {
             ctx.fillStyle = "#d4b47a";
             ctx.fillRect(p.x - 8, p.y - 7, 16, 14);
@@ -165,20 +167,31 @@
     shelves.forEach((shelf, index) => {
       const w = shelf.vertical ? 1 : shelf.length;
       const h = shelf.vertical ? shelf.length : 1;
-      const p = worldToScreen(shelf.x + w / 2, shelf.y + h / 2);
-      const width = (w + h) * TILE_W * 0.25;
-      const height = (w + h) * TILE_H * 0.25;
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.fillStyle = state.selectedShelf === index ? "#a87843" : "#65452e";
-      ctx.strokeStyle = state.selectedShelf === index ? "#ffe2a0" : "#b88758";
-      ctx.lineWidth = state.selectedShelf === index ? 2 : 1;
+      const a = worldToScreen(shelf.x, shelf.y);
+      const b = worldToScreen(shelf.x + w, shelf.y);
+      const c = worldToScreen(shelf.x + w, shelf.y + h);
+      const d = worldToScreen(shelf.x, shelf.y + h);
+      const lift = 15;
+      const selected = state.selectedShelf === index;
       ctx.beginPath();
-      ctx.roundRect(-width / 2, -height / 2 - 13, width, height + 13, 3);
+      ctx.moveTo(a.x, a.y - lift); ctx.lineTo(b.x, b.y - lift);
+      ctx.lineTo(c.x, c.y - lift); ctx.lineTo(d.x, d.y - lift); ctx.closePath();
+      ctx.fillStyle = selected ? "#a87843" : "#765035";
+      ctx.strokeStyle = selected ? "#ffe2a0" : "#b88758";
+      ctx.lineWidth = selected ? 2 : 0.8;
       ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#bd9160";
-      ctx.fillRect(-width / 2 + 3, -height / 2 - 10, Math.max(2, width - 6), 3);
-      ctx.restore();
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y - lift); ctx.lineTo(c.x, c.y - lift);
+      ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.closePath();
+      ctx.fillStyle = "#4a3020"; ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(b.x, b.y - lift); ctx.lineTo(c.x, c.y - lift);
+      ctx.lineTo(c.x, c.y); ctx.lineTo(b.x, b.y); ctx.closePath();
+      ctx.fillStyle = "#5a3b27"; ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y - lift); ctx.lineTo(b.x, b.y - lift);
+      ctx.lineTo(c.x, c.y - lift); ctx.lineTo(d.x, d.y - lift);
+      ctx.strokeStyle = "#c99a68"; ctx.lineWidth = 1.2; ctx.stroke();
     });
   }
 
@@ -219,6 +232,10 @@
     if (keys.has("d") || keys.has("arrowright")) dx += 1;
 
     if (dx !== 0 || dy !== 0) {
+      const screenDx = dx, screenDy = dy;
+      if (state.viewRotation === 1) { dx = -screenDy; dy = screenDx; }
+      else if (state.viewRotation === 2) { dx = -screenDx; dy = -screenDy; }
+      else if (state.viewRotation === 3) { dx = screenDy; dy = -screenDx; }
       const length = Math.hypot(dx, dy);
       const step = CONFIG.moveSpeed * deltaSeconds / length;
       const nextX = state.player.x + dx * step;
