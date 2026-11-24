@@ -53,12 +53,14 @@
   // ---------- Core / Canvas ----------
   function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     canvasWidth = rect.width;
     canvasHeight = rect.height;
     canvas.width = Math.round(rect.width * dpr);
     canvas.height = Math.round(rect.height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
   }
 
   // ---------- World ----------
@@ -109,11 +111,20 @@
     ctx.lineTo(x, y + TILE_H / 2);
     ctx.lineTo(x - TILE_W / 2, y);
     ctx.closePath();
+
+    const shade = ctx.createLinearGradient(x - TILE_W / 2, y - TILE_H / 2, x + TILE_W / 2, y + TILE_H / 2);
+    shade.addColorStop(0, "rgba(255,255,255,.055)");
+    shade.addColorStop(.5, "rgba(255,255,255,0)");
+    shade.addColorStop(1, "rgba(0,0,0,.075)");
     ctx.fillStyle = fill;
     ctx.fill();
+    ctx.fillStyle = shade;
+    ctx.fill();
+
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 0.6;
+    ctx.lineWidth = 0.45;
     ctx.lineJoin = "round";
+    ctx.lineCap = "round";
     ctx.stroke();
   }
 
@@ -126,15 +137,15 @@
         const p = worldToScreen(x + 0.5, y + 0.5);
         if (tile === "2") {
           const h = 25;
-          drawDiamond(p.x, p.y - h, "#62594c", "#9b8b72");
-          ctx.fillStyle = "#403a32";
+          drawDiamond(p.x, p.y - h, "#62594c", "rgba(190,174,148,.48)");
+          ctx.fillStyle = "#484137";
           ctx.beginPath();
           ctx.moveTo(p.x - TILE_W / 2, p.y - h);
           ctx.lineTo(p.x, p.y - TILE_H / 2 - h);
           ctx.lineTo(p.x, p.y - TILE_H / 2);
           ctx.lineTo(p.x - TILE_W / 2, p.y);
           ctx.closePath(); ctx.fill();
-          ctx.fillStyle = "#51483d";
+          ctx.fillStyle = "#575044";
           ctx.beginPath();
           ctx.moveTo(p.x + TILE_W / 2, p.y - h);
           ctx.lineTo(p.x, p.y - TILE_H / 2 - h);
@@ -149,7 +160,7 @@
           ctx.fillRect(p.x - 12, p.y - 22, 24, 4);
           ctx.fillRect(p.x - 12, p.y - 10, 24, 3);
         } else {
-          const floor = (x + y) % 2 ? "#777064" : "#81796b";
+          const floor = (x + y) % 2 ? "#797468" : "#7e796e";
           drawDiamond(p.x, p.y, tile === "0" ? "#9b805b" : floor, "rgba(205,194,173,.22)");
           if (tile === "0") {
             ctx.fillStyle = "#d4b47a";
