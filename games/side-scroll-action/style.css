@@ -53,3 +53,19 @@ kbd{min-width:22px;height:21px;display:inline-grid;place-items:center;padding:0 
 .footer{height:54px;border-top:1px solid #ffffff18;display:flex;align-items:center;justify-content:space-between;color:#718198;font:600 9px 'Barlow Condensed',sans-serif;letter-spacing:2px}
 @media(max-width:700px){.shell{width:calc(100% - 22px)}.topbar{height:62px}.top-note{display:none}.intro{padding:35px 2px 22px}.intro-side{width:100px;transform:scale(.8);transform-origin:right bottom}.hud{gap:18px;padding:0 12px;height:52px}.hud-item strong{font-size:13px}.game-footer{padding:0 9px}.controls{gap:8px;font-size:9px}.controls span{gap:3px}.controls span:last-child{display:none}.bottom-grid{grid-template-columns:1fr;gap:17px;padding:25px 4px}.overlay-card{padding:20px}.overlay h2{font-size:34px}.footer{font-size:8px;letter-spacing:1px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+/* HD-2D presentation layer */
+:root{--mint:#c5f2b1}
+body{background:radial-gradient(ellipse at 50% -18%,#426078 0,transparent 48%),linear-gradient(145deg,#101827,#0b1721 72%);background-attachment:fixed}
+.game-panel{border-color:#c9f0d044;box-shadow:0 30px 100px #0008,0 0 0 1px #ffffff08,inset 0 1px #ffffff20}
+.hud{background:linear-gradient(180deg,#1c3044,#142337);box-shadow:inset 0 -1px #ffffff0c}
+.canvas-wrap{isolation:isolate;background:#8acbd4}
+canvas{image-rendering:auto;filter:saturate(1.08) contrast(1.035)}
+.overlay{background:linear-gradient(90deg,#102033d9,#10203380 58%,#10203345);backdrop-filter:blur(3px)}
+.overlay-card{background:linear-gradient(145deg,#1b3047f2,#101f31f2);border-color:#c5f2b155;box-shadow:0 24px 80px #07111dcc,0 0 45px #b8e6b012}
+#start-button{box-shadow:0 5px 0 #6e9c77,0 10px 28px #9ce7ad30;transition:transform .18s,box-shadow .18s,background .18s}
+#start-button:hover{transform:translateY(-2px);box-shadow:0 7px 0 #6e9c77,0 15px 32px #9ce7ad45}
+.brand-mark{border-radius:3px;box-shadow:0 4px 16px #a7f3c544}
+.bottom-grid article{padding:15px 13px;border:1px solid #ffffff12;border-radius:8px;background:linear-gradient(135deg,#ffffff08,#ffffff02)}
+.bottom-icon{ text-shadow:0 0 18px #b7f0b866}
+@media(max-width:700px){.bottom-grid article{padding:12px}}
