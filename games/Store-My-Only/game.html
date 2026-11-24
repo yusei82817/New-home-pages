@@ -1,1 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17130e">
+  <meta name="description" content="Store My Only - Fantasy Shop Management Simulation">
+  <title>Store My Only | Game</title>
+  <link rel="stylesheet" href="./css/game.css">
+</head>
+<body>
+  <main id="game-root" aria-label="Store My Only ゲーム画面">
+    <canvas id="game-canvas" aria-label="ゲームワールド"></canvas>
 
+    <section class="hud hud-top" aria-label="経営情報">
+      <div class="hud-brand"><span class="brand-mark">S</span><div><small>STORE MY ONLY</small><strong>鍛冶屋経営</strong></div></div>
+      <div class="status-group">
+        <div class="status-item"><small>所持金</small><strong id="money-value">1,000 G</strong></div>
+        <div class="status-item"><small>日付</small><strong id="date-value">1年 1月 1日</strong></div>
+        <div class="status-item"><small>時刻</small><strong id="time-value">08:00</strong></div>
+      </div>
+    </section>
+
+    <section class="hud shop-panel" aria-label="店舗情報">
+      <small>STORE STATUS</small>
+      <strong id="shop-status">準備中</strong>
+      <span id="shop-description">開店準備を整えよう。</span>
+      <button id="shop-toggle" type="button">営業開始</button>
+    </section>
+
+    <section class="hud message-panel" aria-live="polite">
+      <span class="message-label">SYSTEM</span>
+      <p id="message-text">Store My Onlyへようこそ。マップはこれから設定します。</p>
+    </section>
+
+    <div class="control-hint" aria-hidden="true">移動：WASD / 矢印キー　　調べる：E　　メニュー：Esc</div>
+
+    <section id="interaction-panel" class="interaction-panel" hidden>
+      <div class="panel-heading"><small>INTERACTION</small><button id="close-panel" type="button" aria-label="閉じる">×</button></div>
+      <h2 id="interaction-title">準備中</h2>
+      <p id="interaction-description">この機能は今後追加されます。</p>
+    </section>
+  </main>
+  <script src="./js/game.js" defer></script>
+</body>
+</html>
