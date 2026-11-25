@@ -214,32 +214,47 @@
       }
     }
 
-    // Walls are continuous vertical planes along the shop perimeter, not stacked cubes.
-    walls.sort((a,b)=>a.depth-b.depth);
-    const wallHeight=CONFIG.pixelsPerUnit*1.65;
-    for(const wall of walls) {
-      const a=worldToScreen(wall.a[0],wall.a[1]);
-      const b=worldToScreen(wall.b[0],wall.b[1]);
+    // Sort wall planes and shelves together so nearer walls correctly occlude objects behind them.
+    const renderQueue = [
+      ...walls.map(wall => ({ type: "wall", depth: wall.depth, item: wall })),
+      ...shelves.map((shelf, index) => ({
+        type: "shelf",
+        index,
+        depth: cameraDepth(
+          shelf.x + (shelf.vertical ? .5 : shelf.length / 2),
+          shelf.y + (shelf.vertical ? shelf.length / 2 : .5)
+        )
+      }))
+    ];
+    renderQueue.sort((a, b) => a.depth - b.depth || (a.type === "wall" ? -1 : 1));
+
+    const wallHeight = CONFIG.pixelsPerUnit * 1.65;
+    for (const entry of renderQueue) {
+      if (entry.type === "shelf") {
+        drawShelves([entry.index]);
+        continue;
+      }
+      const wall = entry.item;
+      const a = worldToScreen(wall.a[0], wall.a[1]);
+      const b = worldToScreen(wall.b[0], wall.b[1]);
       ctx.beginPath();
-      ctx.moveTo(a.x,a.y-wallHeight);
-      ctx.lineTo(b.x,b.y-wallHeight);
-      ctx.lineTo(b.x,b.y);
-      ctx.lineTo(a.x,a.y);
+      ctx.moveTo(a.x, a.y - wallHeight);
+      ctx.lineTo(b.x, b.y - wallHeight);
+      ctx.lineTo(b.x, b.y);
+      ctx.lineTo(a.x, a.y);
       ctx.closePath();
-      ctx.fillStyle=wall.color;
+      ctx.fillStyle = wall.color;
       ctx.fill();
-      ctx.strokeStyle="rgba(224,202,164,.24)";
-      ctx.lineWidth=.8;
+      ctx.strokeStyle = "rgba(224,202,164,.24)";
+      ctx.lineWidth = .8;
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(a.x,a.y-wallHeight);
-      ctx.lineTo(b.x,b.y-wallHeight);
-      ctx.strokeStyle="rgba(255,229,184,.48)";
-      ctx.lineWidth=1.4;
+      ctx.moveTo(a.x, a.y - wallHeight);
+      ctx.lineTo(b.x, b.y - wallHeight);
+      ctx.strokeStyle = "rgba(255,229,184,.48)";
+      ctx.lineWidth = 1.4;
       ctx.stroke();
     }
-
-    drawShelves();
     const light=ctx.createRadialGradient(canvasWidth*.52,canvasHeight*.48,12,canvasWidth*.52,canvasHeight*.48,Math.max(canvasWidth,canvasHeight)*.58);
     light.addColorStop(0,"rgba(255,205,125,.075)");
     light.addColorStop(.55,"rgba(255,178,92,.025)");
@@ -247,10 +262,8 @@
     ctx.fillStyle=light;ctx.fillRect(0,0,canvasWidth,canvasHeight);
   }
 
-  function drawShelves() {
-    const ordered = shelves.map((shelf, index) => ({ shelf, index }))
-      .sort((a, b) => cameraDepth(a.shelf.x + (a.shelf.vertical ? .5 : a.shelf.length / 2), a.shelf.y + (a.shelf.vertical ? a.shelf.length / 2 : .5)) -
-                     cameraDepth(b.shelf.x + (b.shelf.vertical ? .5 : b.shelf.length / 2), b.shelf.y + (b.shelf.vertical ? b.shelf.length / 2 : .5)));
+  function drawShelves(indices = shelves.map((_, index) => index)) {
+    const ordered = indices.map(index => ({ shelf: shelves[index], index }));
     ordered.forEach(({ shelf, index }) => {
       const w = shelf.vertical ? 1 : shelf.length, h = shelf.vertical ? shelf.length : 1;
       const a = worldToScreen(shelf.x, shelf.y), b = worldToScreen(shelf.x + w, shelf.y);
