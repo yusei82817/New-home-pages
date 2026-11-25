@@ -79,22 +79,36 @@
     const a=backgroundAI;
     a.jumpCooldown=Math.max(0,a.jumpCooldown-dt);
     const oldY=a.y;
-    const support=platforms.find(p=>a.x+a.w>p.x && a.x<p.x+p.w && Math.abs(a.y+a.h-p.y)<9);
-    const nextHazard=hazards.find(h=>h.x+h.w>a.x+12 && h.x-a.x<112);
+    // Keep the distant runner on the main route; decorative upper ledges are not part of its path.
+    const route=platforms.filter(p=>p.h>=100 && p.y>=390);
+    const support=route.find(p=>a.x+a.w>p.x && a.x<p.x+p.w && Math.abs(a.y+a.h-p.y)<12);
+    const nextRoute=route.filter(p=>p.x>a.x+a.w-4).sort((p,q)=>p.x-q.x)[0];
     const edge=support ? support.x+support.w-(a.x+a.w) : 9999;
-    const nextPlatform=platforms.filter(p=>p.x>=a.x+a.w-8 && p.x-a.x<310).sort((p,q)=>p.x-q.x)[0];
-    const gapAhead=support && nextPlatform ? nextPlatform.x-(support.x+support.w) : 9999;
-    if(a.onGround && a.jumpCooldown<=0 && (nextHazard || (edge<48 && gapAhead<255))){
-      a.vy=-510;a.onGround=false;a.jumpCooldown=.55;
+    const gapAhead=support && nextRoute ? nextRoute.x-(support.x+support.w) : 9999;
+    const nextHazard=hazards.find(h=>h.x>a.x+30 && h.x-a.x<92);
+    const shouldJump=!!nextHazard || (support && nextRoute && edge<62 && gapAhead<190);
+    if(a.onGround && a.jumpCooldown<=0 && shouldJump){
+      a.vy=-620;
+      a.onGround=false;
+      a.jumpCooldown=.72;
     }
-    a.vx=165;a.face=1;a.x+=a.vx*dt;
-    a.vy=Math.min(800,a.vy+1450*dt);a.y+=a.vy*dt;a.onGround=false;
-    for(const p of platforms){
-      if(a.vy>=0 && oldY+a.h<=p.y+5 && a.y+a.h>=p.y && a.x+a.w>p.x && a.x<p.x+p.w){
-        a.y=p.y-a.h;a.vy=0;a.onGround=true;
+    a.vx=165;
+    a.face=1;
+    a.x+=a.vx*dt;
+    a.vy=Math.min(850,a.vy+1450*dt);
+    a.y+=a.vy*dt;
+    a.onGround=false;
+    for(const p of route){
+      if(a.vy>=0 && oldY+a.h<=p.y+6 && a.y+a.h>=p.y && a.x+a.w>p.x && a.x<p.x+p.w){
+        a.y=p.y-a.h;
+        a.vy=0;
+        a.onGround=true;
       }
     }
-    if(a.y>650 || a.x>worldWidth-30){a.x=75;a.y=408;a.vy=0;a.onGround=false;a.jumpCooldown=.25;}
+    // Recover only if a genuinely missed landing occurs; normal route gaps are jumpable.
+    if(a.y>610 || a.x>worldWidth-30){
+      a.x=75;a.y=408;a.vy=0;a.onGround=false;a.jumpCooldown=.2;
+    }
   }
   function update(dt){
     updateBackgroundAI(dt);
