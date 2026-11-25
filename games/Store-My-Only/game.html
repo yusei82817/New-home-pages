@@ -28,12 +28,27 @@
       <button id="shop-toggle" type="button">営業開始</button>
     </section>
 
-    <section class="hud message-panel" aria-live="polite">
-      <span class="message-label">SYSTEM</span>
-      <p id="message-text">廃れた鍜治場へようこそ。Q/Eで5度ずつ視点回転、棚をクリックしてRで回転。</p>
+    <nav class="management-nav" aria-label="経営メニュー">
+      <button type="button" data-screen="procurement">仕入れ</button>
+      <button type="button" data-screen="manufacture">製造</button>
+      <button type="button" data-screen="forge">鍛冶</button>
+      <button type="button" data-screen="life">生活</button>
+    </nav>
+
+    <section id="management-screen" class="management-screen" aria-live="polite" hidden>
+      <header class="management-header">
+        <div><small id="screen-eyebrow">MANAGEMENT</small><h2 id="screen-title">仕入れ</h2></div>
+        <button id="close-management" type="button" aria-label="画面を閉じる">×</button>
+      </header>
+      <div id="screen-content" class="screen-content"></div>
     </section>
 
-    <div class="control-hint" aria-hidden="true">視点回転：Q / E（5度ずつ）　　棚選択：クリック　棚回転：R　調べる：F　メニュー：Esc</div>
+    <section class="hud message-panel" aria-live="polite">
+      <span class="message-label">SYSTEM</span>
+      <p id="message-text">廃れた鍜治場へようこそ。Q/Eで10度ずつ視点回転、棚をクリックしてRで回転。</p>
+    </section>
+
+    <div class="control-hint" aria-hidden="true">視点回転：Q / E（10度ずつ）　　棚選択：クリック　棚回転：R　調べる：F　メニュー：Esc</div>
 
     <section id="interaction-panel" class="interaction-panel" hidden>
       <div class="panel-heading"><small>INTERACTION</small><button id="close-panel" type="button" aria-label="閉じる">×</button></div>
