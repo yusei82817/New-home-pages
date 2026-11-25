@@ -177,7 +177,7 @@
             if (tileAt(x+edge.nx+.5,y+edge.ny+.5) !== null) continue;
             const mx=(edge.a[0]+edge.b[0])/2, my=(edge.a[1]+edge.b[1])/2;
             const centerDepth=cameraDepth(x+.5,y+.5);
-            // Keep only the far/back-facing wall edges; hide foreground walls.\n            if (cameraDepth(mx,my) > centerDepth) continue;
+            // Render only the two far-side perimeter directions.\n            // South/east-facing edges are foreground walls and stay hidden.\n            if (edge.nx !== -1 && edge.ny !== -1) continue;
             walls.push({...edge,x,y,depth:cameraDepth(mx,my)});
           }
         }
