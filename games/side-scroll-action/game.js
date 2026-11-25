@@ -180,7 +180,7 @@
     ctx.save();ctx.globalAlpha=.9;
     ctx.fillStyle='#183c3b77';ctx.beginPath();ctx.ellipse(a.x,a.y+2,5,1.8,0,0,Math.PI*2);ctx.fill();
     if(playerSprite.complete&&playerSprite.naturalWidth>=750&&playerSprite.naturalHeight>=332){
-      ctx.translate(a.x,a.y+bob);ctx.scale(.22,.22);
+      ctx.translate(a.x,a.y+bob);ctx.scale(-.22,.22);
       ctx.drawImage(playerSprite,250,0,250,332,-19,-50,38,50);
     }else{
       ctx.fillStyle='#f0b17b';ctx.fillRect(a.x-3,a.y-8+bob,6,8);
