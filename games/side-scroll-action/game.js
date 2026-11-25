@@ -39,6 +39,8 @@
   const gravePlatforms = [];
   const keys = new Set();
   let player, camera, coins, elapsed, state, lastTime, particles;
+  const backgroundAI = {x:75,y:408,vx:165,vy:0,w:28,h:42,onGround:false,face:1,jumpCooldown:0};
+  let backgroundClock=0;
 
   function reset(){
     player={x:75,y:380,w:28,h:42,vx:0,vy:0,onGround:false,face:1,invuln:0,moveStart:0,wasMoving:false};
@@ -72,7 +74,30 @@
     player.x=75;player.y=380;player.vx=0;player.vy=0;player.invuln=1.2;camera=0;
     state='playing';updateHud();
   }
+  function updateBackgroundAI(dt){
+    backgroundClock+=dt;
+    const a=backgroundAI;
+    a.jumpCooldown=Math.max(0,a.jumpCooldown-dt);
+    const oldY=a.y;
+    const support=platforms.find(p=>a.x+a.w>p.x && a.x<p.x+p.w && Math.abs(a.y+a.h-p.y)<9);
+    const nextHazard=hazards.find(h=>h.x+h.w>a.x+12 && h.x-a.x<112);
+    const edge=support ? support.x+support.w-(a.x+a.w) : 9999;
+    const nextPlatform=platforms.filter(p=>p.x>=a.x+a.w-8 && p.x-a.x<310).sort((p,q)=>p.x-q.x)[0];
+    const gapAhead=support && nextPlatform ? nextPlatform.x-(support.x+support.w) : 9999;
+    if(a.onGround && a.jumpCooldown<=0 && (nextHazard || (edge<48 && gapAhead<255))){
+      a.vy=-510;a.onGround=false;a.jumpCooldown=.55;
+    }
+    a.vx=165;a.face=1;a.x+=a.vx*dt;
+    a.vy=Math.min(800,a.vy+1450*dt);a.y+=a.vy*dt;a.onGround=false;
+    for(const p of platforms){
+      if(a.vy>=0 && oldY+a.h<=p.y+5 && a.y+a.h>=p.y && a.x+a.w>p.x && a.x<p.x+p.w){
+        a.y=p.y-a.h;a.vy=0;a.onGround=true;
+      }
+    }
+    if(a.y>650 || a.x>worldWidth-30){a.x=75;a.y=408;a.vy=0;a.onGround=false;a.jumpCooldown=.25;}
+  }
   function update(dt){
+    updateBackgroundAI(dt);
     if(state!=='playing')return;
     elapsed+=dt;
     const left=keys.has('ArrowLeft'),right=keys.has('ArrowRight');
@@ -116,6 +141,57 @@
   function rounded(x,y,w,h,r,color){
     ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();
   }
+  function drawBackgroundStage(){
+    const left=34,right=W-34,top=164,bottom=282;
+    const project=(wx,wy)=>{
+      const t=wx/worldWidth;
+      return {x:left+t*(right-left),y:bottom+(wy-450)*.205+Math.abs(t-.5)*17};
+    };
+    ctx.save();
+    const floor=ctx.createLinearGradient(0,top,0,bottom+20);
+    floor.addColorStop(0,'#a9c8b277');floor.addColorStop(1,'#315f5866');
+    ctx.fillStyle=floor;ctx.beginPath();
+    ctx.moveTo(left+34,top+12);ctx.lineTo(right-34,top+12);
+    ctx.lineTo(right,bottom+20);ctx.lineTo(left,bottom+20);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='#e2e9c455';ctx.lineWidth=2;ctx.stroke();
+    ctx.strokeStyle='#e4edcf22';ctx.lineWidth=1;
+    for(let i=0;i<9;i++){
+      const x=left+i*(right-left)/8;
+      ctx.beginPath();ctx.moveTo((left+right)/2,top+12);ctx.lineTo(x,bottom+18);ctx.stroke();
+    }
+    for(const p of platforms){
+      const a=project(p.x,p.y),b=project(p.x+p.w,p.y),depth=Math.max(2,p.h*.11);
+      ctx.fillStyle='#244c49aa';ctx.fillRect(a.x,a.y,b.x-a.x,depth);
+      ctx.fillStyle='#82ad7c';ctx.fillRect(a.x,a.y-2,b.x-a.x,3);
+      ctx.fillStyle='#527d69';ctx.fillRect(a.x,a.y+1,b.x-a.x,depth);
+    }
+    for(const h of hazards){
+      const a=project(h.x,h.y),b=project(h.x+h.w,h.y);
+      ctx.fillStyle='#c66f6b';ctx.beginPath();
+      ctx.moveTo(a.x,a.y+4);ctx.lineTo((a.x+b.x)/2,a.y-5);ctx.lineTo(b.x,a.y+4);ctx.closePath();ctx.fill();
+    }
+    for(const c of coinSpots){
+      if(c.taken)continue;
+      const p=project(c.x,c.y);
+      ctx.fillStyle='#ffe7a8aa';ctx.beginPath();ctx.arc(p.x,p.y,2.1,0,Math.PI*2);ctx.fill();
+    }
+    const a=project(backgroundAI.x+backgroundAI.w/2,backgroundAI.y+backgroundAI.h);
+    const bob=backgroundAI.onGround?Math.sin(backgroundClock*13)*.8:0;
+    ctx.save();ctx.globalAlpha=.9;
+    ctx.fillStyle='#183c3b77';ctx.beginPath();ctx.ellipse(a.x,a.y+2,5,1.8,0,0,Math.PI*2);ctx.fill();
+    if(playerSprite.complete&&playerSprite.naturalWidth>=750&&playerSprite.naturalHeight>=332){
+      ctx.translate(a.x,a.y+bob);ctx.scale(.22,.22);
+      ctx.drawImage(playerSprite,250,0,250,332,-19,-50,38,50);
+    }else{
+      ctx.fillStyle='#f0b17b';ctx.fillRect(a.x-3,a.y-8+bob,6,8);
+      ctx.fillStyle='#31465a';ctx.fillRect(a.x-3,a.y-14+bob,6,6);
+    }
+    ctx.restore();
+    const haze=ctx.createLinearGradient(0,top,0,bottom+20);
+    haze.addColorStop(0,'#c4d9c866');haze.addColorStop(.55,'#b8d2bd33');haze.addColorStop(1,'#8eb5a022');
+    ctx.fillStyle=haze;ctx.fillRect(left,top,right-left,bottom-top+20);
+    ctx.restore();
+  }
   function drawBackground(){
     const sky=ctx.createLinearGradient(0,0,0,H);
     sky.addColorStop(0,'#547f9b');sky.addColorStop(.48,'#9bc9c1');sky.addColorStop(1,'#e5d9ad');
@@ -126,6 +202,7 @@
     glow.addColorStop(0,'#fff4c7aa');glow.addColorStop(.35,'#ffe8a044');glow.addColorStop(1,'#ffe8a000');
     ctx.fillStyle=glow;ctx.fillRect(sunX-150,sunY-150,300,300);
     ctx.fillStyle='#fff0c4';ctx.beginPath();ctx.arc(sunX,sunY,39,0,Math.PI*2);ctx.fill();
+    drawBackgroundStage();
     // Faraway mesas and mountain silhouettes.
     for(let layer=0;layer<3;layer++){
       const speed=[.075,.15,.28][layer],base=[310,360,410][layer];
