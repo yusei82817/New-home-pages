@@ -19,7 +19,13 @@
     panel: document.getElementById("interaction-panel"),
     panelTitle: document.getElementById("interaction-title"),
     panelDescription: document.getElementById("interaction-description"),
-    closePanel: document.getElementById("close-panel")
+    closePanel: document.getElementById("close-panel"),
+    management: document.getElementById("management-screen"),
+    screenTitle: document.getElementById("screen-title"),
+    screenEyebrow: document.getElementById("screen-eyebrow"),
+    screenContent: document.getElementById("screen-content"),
+    closeManagement: document.getElementById("close-management"),
+    navButtons: [...document.querySelectorAll("[data-screen]")]
   };
 
   const CONFIG = {
@@ -41,7 +47,10 @@
     viewAngle: 0,
     targetViewAngle: 0,
     selectedShelf: -1,
-    paused: false
+    paused: false,
+    materials: { ore: 0, wood: 0, coal: 0, ingot: 0 },
+    products: { blade: 0 },
+    life: { stamina: 72, fullness: 64, condition: 86 }
   };
 
   let lastFrame = 0;
@@ -359,6 +368,144 @@
   // The shopkeeper does not have free movement in this management view.
 
   // ---------- Business ----------
+  const screenNames = {
+    procurement: ["仕入れ", "PROCUREMENT"],
+    manufacture: ["製造", "MANUFACTURING"],
+    forge: ["鍛冶", "FORGING"],
+    life: ["生活", "DAILY LIFE"]
+  };
+
+  function openManagement(screen) {
+    if (!screenNames[screen]) return;
+    state.paused = true;
+    ui.management.hidden = false;
+    ui.navButtons.forEach(button => button.classList.toggle("active", button.dataset.screen === screen));
+    renderManagementScreen(screen);
+  }
+
+  function closeManagement() {
+    ui.management.hidden = true;
+    ui.navButtons.forEach(button => button.classList.remove("active"));
+    state.paused = !ui.panel.hidden;
+  }
+
+  function renderManagementScreen(screen) {
+    const [title, eyebrow] = screenNames[screen];
+    ui.screenTitle.textContent = title;
+    ui.screenEyebrow.textContent = eyebrow;
+    const m = state.materials;
+    const materialRow = (name, key, price, detail) => `
+      <div class="resource-row">
+        <div class="resource-info"><strong>${name}</strong><small>${detail} / 所持：${m[key]}個</small></div>
+        <div class="resource-action"><span>${price} G</span><button data-action="buy-${key}">仕入れる</button></div>
+      </div>`;
+    const recipe = (name, detail, action, label) => `
+      <div class="recipe-card"><div><strong>${name}</strong><p>${detail}</p></div><button data-action="${action}">${label}</button></div>`;
+    let html = "";
+    if (screen === "procurement") {
+      html = `
+        <p class="screen-lead">製造に必要な原材料を仕入れる。価格は試作段階の仮設定。</p>
+        <div class="screen-stats">
+          <div class="status-card"><small>所持金</small><strong>${state.money.toLocaleString("ja-JP")} G</strong></div>
+          <div class="status-card"><small>保管中の素材</small><strong>${m.ore + m.wood + m.coal + m.ingot} 個</strong></div>
+        </div>
+        <h3 class="screen-section-title">原材料一覧</h3>
+        <div class="resource-list">
+          ${materialRow("鉄鉱石", "ore", 120, "金属素材")}
+          ${materialRow("木材", "wood", 60, "加工用素材")}
+          ${materialRow("石炭", "coal", 80, "燃料")}
+        </div>
+        <p class="screen-note">仕入れた素材は製造・鍛冶画面で使用できる。</p>`;
+    } else if (screen === "manufacture") {
+      html = `
+        <p class="screen-lead">原材料を加工して、鍛冶に使う素材を準備する。</p>
+        <div class="screen-stats">
+          <div class="status-card"><small>鉄鉱石</small><strong>${m.ore} 個</strong></div>
+          <div class="status-card"><small>石炭</small><strong>${m.coal} 個</strong></div>
+        </div>
+        <h3 class="screen-section-title">製造レシピ</h3>
+        <div class="recipe-list">
+          ${recipe("鉄インゴット ×1", "鉄鉱石 ×2 / 石炭 ×1", "make-ingot", "製造する")}
+        </div>
+        <h3 class="screen-section-title">加工済み素材</h3>
+        <div class="resource-row"><div class="resource-info"><strong>鉄インゴット</strong><small>鍛冶に使用</small></div><strong>${m.ingot} 個</strong></div>
+        <p class="screen-note">製造には材料のみを消費する簡易仕様。設備・時間の要素は未実装。</p>`;
+    } else if (screen === "forge") {
+      html = `
+        <p class="screen-lead">加工済み素材を使って商品を製作する。完成品は在庫に追加される。</p>
+        <div class="screen-stats">
+          <div class="status-card"><small>鉄インゴット</small><strong>${m.ingot} 個</strong></div>
+          <div class="status-card"><small>石炭</small><strong>${m.coal} 個</strong></div>
+        </div>
+        <h3 class="screen-section-title">製作可能な品目</h3>
+        <div class="recipe-list">
+          ${recipe("鉄の剣 ×1", "鉄インゴット ×2 / 石炭 ×1", "forge-blade", "鍛造する")}
+        </div>
+        <h3 class="screen-section-title">完成品在庫</h3>
+        <div class="resource-row"><div class="resource-info"><strong>鉄の剣</strong><small>販売待ち</small></div><strong>${state.products.blade} 本</strong></div>
+        <p class="screen-note">品質評価・耐久値・個別性能は今後追加する。</p>`;
+    } else {
+      html = `
+        <p class="screen-lead">店主の日常管理。休息や食事でコンディションを整える。</p>
+        <div class="screen-stats">
+          <div class="status-card"><small>体力</small><strong>${state.life.stamina}%</strong></div>
+          <div class="status-card"><small>満腹度</small><strong>${state.life.fullness}%</strong></div>
+          <div class="status-card"><small>健康状態</small><strong>${state.life.condition}%</strong></div>
+          <div class="status-card"><small>所持金</small><strong>${state.money.toLocaleString("ja-JP")} G</strong></div>
+        </div>
+        <h3 class="screen-section-title">生活行動</h3>
+        <div class="life-grid">
+          <div class="life-action"><div><strong>食事をとる</strong><small>30 G / 満腹度を回復</small></div><button data-action="eat">食事する</button></div>
+          <div class="life-action"><div><strong>休息する</strong><small>8時間経過 / 体力を回復</small></div><button data-action="rest">休息する</button></div>
+        </div>
+        <p class="screen-note">生活行動は時間と所持金に影響する簡易システム。</p>`;
+    }
+    ui.screenContent.innerHTML = html;
+  }
+
+  function handleManagementAction(action) {
+    const m = state.materials;
+    const purchases = {
+      "buy-ore": ["ore", 120, "鉄鉱石"],
+      "buy-wood": ["wood", 60, "木材"],
+      "buy-coal": ["coal", 80, "石炭"]
+    };
+    if (purchases[action]) {
+      const [key, price, name] = purchases[action];
+      if (state.money < price) { setMessage("所持金が足りない。"); return; }
+      state.money -= price;
+      m[key] += 1;
+      setMessage(name + "を1個仕入れた。");
+    } else if (action === "make-ingot") {
+      if (m.ore < 2 || m.coal < 1) { setMessage("鉄鉱石2個と石炭1個が必要。"); return; }
+      m.ore -= 2; m.coal -= 1; m.ingot += 1;
+      setMessage("鉄インゴットを1個製造した。");
+    } else if (action === "forge-blade") {
+      if (m.ingot < 2 || m.coal < 1) { setMessage("鉄インゴット2個と石炭1個が必要。"); return; }
+      m.ingot -= 2; m.coal -= 1; state.products.blade += 1;
+      setMessage("鉄の剣を1本鍛造した。");
+    } else if (action === "eat") {
+      if (state.money < 30) { setMessage("食事代が足りない。"); return; }
+      if (state.life.fullness >= 100) { setMessage("今は満腹だ。"); return; }
+      state.money -= 30;
+      state.life.fullness = Math.min(100, state.life.fullness + 25);
+      state.life.condition = Math.min(100, state.life.condition + 3);
+      setMessage("食事をとった。");
+    } else if (action === "rest") {
+      state.minutes += 8 * 60;
+      while (state.minutes >= 24 * 60) {
+        state.minutes -= 24 * 60; state.day += 1;
+        if (state.day > 30) { state.day = 1; state.month += 1; if (state.month > 12) { state.month = 1; state.year += 1; } }
+      }
+      state.life.stamina = Math.min(100, state.life.stamina + 45);
+      state.life.fullness = Math.max(0, state.life.fullness - 15);
+      setMessage("8時間休息した。");
+    }
+    updateUI();
+    const active = ui.navButtons.find(button => button.classList.contains("active"));
+    if (active) renderManagementScreen(active.dataset.screen);
+  }
+
   function toggleShop() {
     state.isShopOpen = !state.isShopOpen;
     updateUI();
@@ -453,7 +600,8 @@
     if (key === "e") state.targetViewAngle += Math.PI / 18;
     if (key === "f" && ui.panel.hidden) openInteraction();
     if (key === "r") rotateSelectedShelf();
-    if (key === "escape" && !ui.panel.hidden) closeInteraction();
+    if (key === "escape" && !ui.management.hidden) closeManagement();
+    else if (key === "escape" && !ui.panel.hidden) closeInteraction();
     if (key === "f5") {
       event.preventDefault();
       saveGame();
@@ -475,6 +623,12 @@
   });
   ui.shopToggle.addEventListener("click", toggleShop);
   ui.closePanel.addEventListener("click", closeInteraction);
+  ui.navButtons.forEach(button => button.addEventListener("click", () => openManagement(button.dataset.screen)));
+  ui.closeManagement.addEventListener("click", closeManagement);
+  ui.screenContent.addEventListener("click", event => {
+    const button = event.target.closest("[data-action]");
+    if (button) handleManagementAction(button.dataset.action);
+  });
   window.addEventListener("resize", resizeCanvas);
 
   // ---------- Main Loop ----------
