@@ -44,8 +44,6 @@
     minutes: CONFIG.startHour * 60,
     isShopOpen: false,
     scene: "blacksmith",
-    viewAngle: 0,
-    targetViewAngle: 0,
     selectedShelf: -1,
     paused: false,
     materials: { ore: 0, wood: 0, coal: 0, ingot: 0 },
@@ -149,11 +147,7 @@
   }
 
   function cameraDepth(x, y) {
-    const dx = x - state.camera.x, dy = y - state.camera.y;
-    const cos = Math.cos(state.viewAngle), sin = Math.sin(state.viewAngle);
-    const rx = dx * cos - dy * sin;
-    const ry = dx * sin + dy * cos;
-    return rx + ry;
+    return (x - state.camera.x) + (y - state.camera.y);
   }
 
   function drawMap() {
@@ -354,14 +348,12 @@
   }
 
   function worldToScreen(x, y) {
-    const dx = x - state.camera.x, dy = y - state.camera.y;
-    const cos = Math.cos(state.viewAngle), sin = Math.sin(state.viewAngle);
-    const rx = dx * cos - dy * sin;
-    const ry = dx * sin + dy * cos;
+    const dx = x - state.camera.x;
+    const dy = y - state.camera.y;
     const scale = CONFIG.pixelsPerUnit;
     return {
-      x: canvasWidth / 2 + (rx - ry) * scale * 0.5,
-      y: canvasHeight / 2 + (rx + ry) * scale * 0.25
+      x: canvasWidth / 2 + (dx - dy) * scale * 0.5,
+      y: canvasHeight / 2 + (dx + dy) * scale * 0.25
     };
   }
 
@@ -596,8 +588,6 @@
     const key = event.key.toLowerCase();
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
     if (event.repeat) return;
-    if (key === "q") state.targetViewAngle -= Math.PI / 18;
-    if (key === "e") state.targetViewAngle += Math.PI / 18;
     if (key === "f" && ui.panel.hidden) openInteraction();
     if (key === "r") rotateSelectedShelf();
     if (key === "escape" && !ui.management.hidden) closeManagement();
@@ -635,9 +625,6 @@
   function frame(timestamp) {
     const deltaSeconds = Math.min((timestamp - lastFrame) / 1000 || 0, 0.05);
     lastFrame = timestamp;
-    const rotationDelta = state.targetViewAngle - state.viewAngle;
-    state.viewAngle += rotationDelta * (1 - Math.exp(-deltaSeconds * 10));
-    if (Math.abs(rotationDelta) < 0.0005) state.viewAngle = state.targetViewAngle;
     updateGameTime(deltaSeconds);
     drawMap();
     updateUI();
