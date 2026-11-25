@@ -449,8 +449,8 @@
     const key = event.key.toLowerCase();
     if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key)) event.preventDefault();
     if (event.repeat) return;
-    if (key === "q") state.targetViewAngle -= Math.PI / 36;
-    if (key === "e") state.targetViewAngle += Math.PI / 36;
+    if (key === "q") state.targetViewAngle -= Math.PI / 18;
+    if (key === "e") state.targetViewAngle += Math.PI / 18;
     if (key === "f" && ui.panel.hidden) openInteraction();
     if (key === "r") rotateSelectedShelf();
     if (key === "escape" && !ui.panel.hidden) closeInteraction();
